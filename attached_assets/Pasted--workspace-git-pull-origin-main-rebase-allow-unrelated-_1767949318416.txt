@@ -1,5 +1,5 @@
 ~/workspace$ git pull origin main --rebase --allow-unrelated-histories
-From https://github.com/hlulanigoi/the-gtw
+From https://github.com/Hlulanigo/GTW-Website
  * branch            main       -> FETCH_HEAD
 Auto-merging app.json
 CONFLICT (add/add): Merge conflict in app.json

@@ -32,7 +32,7 @@ cd /home/app/the-gtw
 
 # Clone repository
 echo "Cloning repository..."
-git clone https://github.com/hlulanigoi/the-gtw.git . || git pull origin main
+git clone https://github.com/Hlulanigo/GTW-Website.git . || git pull origin main
 
 # Install dependencies
 echo "Installing npm dependencies..."

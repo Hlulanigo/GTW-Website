@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "node:http";
 import { storage, db } from "./storage";
-import { users, parcels, conversations, messages, connections, routes, routeBookings, reviews, pushTokens, parcelMessages, carrierLocations, receiverLocations, payments, walletTransactions, savedPaymentMethods, autoTopUpSettings, disputes, disputeMessages, parcelPhotos, notifications, insertParcelSchema, insertMessageSchema, insertConnectionSchema, insertRouteSchema, insertRouteBookingSchema, insertReviewSchema, insertPushTokenSchema, insertParcelMessageSchema, insertCarrierLocationSchema, insertReceiverLocationSchema, insertPaymentSchema, insertWalletTransactionSchema, insertSavedPaymentMethodSchema, insertAutoTopUpSettingsSchema, insertDisputeSchema, insertDisputeMessageSchema, insertParcelPhotoSchema } from "../shared/schema";
+import { users, parcels, conversations, messages, connections, routes, routeBookings, reviews, pushTokens, parcelMessages, carrierLocations, receiverLocations, parcelTrackingEvents, payments, walletTransactions, savedPaymentMethods, autoTopUpSettings, disputes, disputeMessages, parcelPhotos, notifications, insertParcelSchema, insertMessageSchema, insertConnectionSchema, insertRouteSchema, insertRouteBookingSchema, insertReviewSchema, insertPushTokenSchema, insertParcelMessageSchema, insertCarrierLocationSchema, insertReceiverLocationSchema, insertPaymentSchema, insertWalletTransactionSchema, insertSavedPaymentMethodSchema, insertAutoTopUpSettingsSchema, insertDisputeSchema, insertDisputeMessageSchema, insertParcelPhotoSchema } from "../shared/schema";
 import { createHmac } from "crypto";
 import { eq, desc, and, gte, lte, ne, sql } from "drizzle-orm";
 import { requireAuth, optionalAuth, type AuthenticatedRequest } from "./firebase-admin";
@@ -9,6 +9,36 @@ import { registerReceiverEnhancements } from "./receiver-enhancements";
 import { registerAIRoutes } from "./ai-routes";
 import { NotificationService } from "./notification-service";
 import { setupRealtime, broadcastToUsers, isUserOnline, getLastSeen } from "./realtime";
+
+const TRACKING_EVENT_TYPES = new Set(["Accepted", "Picked Up", "In Transit", "Arrived", "Delivered"]);
+
+function normalizedEmail(email?: string | null) {
+  return email?.trim().toLowerCase() || null;
+}
+
+function isParcelParticipant(
+  parcel: { senderId: string; transporterId?: string | null; receiverId?: string | null; receiverEmail?: string | null },
+  user?: { uid: string; email?: string },
+) {
+  const email = normalizedEmail(user?.email);
+  return Boolean(
+    user &&
+    (parcel.senderId === user.uid ||
+      parcel.transporterId === user.uid ||
+      parcel.receiverId === user.uid ||
+      (email && normalizedEmail(parcel.receiverEmail) === email)),
+  );
+}
+
+async function recordTrackingEvent(parcelId: string, eventType: string, createdByUserId: string, note?: string) {
+  if (!TRACKING_EVENT_TYPES.has(eventType)) return;
+  await db.insert(parcelTrackingEvents).values({
+    parcelId,
+    eventType: eventType as "Accepted" | "Picked Up" | "In Transit" | "Arrived" | "Delivered",
+    createdByUserId,
+    note: note || null,
+  });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Public Firebase config for the provider dashboard (keys are safe to expose in browser)
@@ -139,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/parcels", async (req, res) => {
+  app.get("/api/parcels", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { senderId, receiverId, transporterId } = req.query as {
         senderId?: string;
@@ -147,10 +177,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transporterId?: string;
       };
 
+      const userId = req.user!.uid;
+      if ((senderId && senderId !== userId) || (receiverId && receiverId !== userId) || (transporterId && transporterId !== userId)) {
+        return res.status(403).json({ error: "You can only query your own parcels" });
+      }
+
       const conditions = [];
-      if (senderId) conditions.push(eq(parcels.senderId, senderId));
-      if (receiverId) conditions.push(eq(parcels.receiverId, receiverId));
-      if (transporterId) conditions.push(eq(parcels.transporterId, transporterId));
+      if (senderId) conditions.push(eq(parcels.senderId, userId));
+      if (receiverId) {
+        const email = normalizedEmail(req.user!.email);
+        conditions.push(email
+          ? sql`(${parcels.receiverId} = ${userId} OR lower(${parcels.receiverEmail}) = ${email})`
+          : eq(parcels.receiverId, userId));
+      }
+      if (transporterId) conditions.push(eq(parcels.transporterId, userId));
+      if (conditions.length === 0) {
+        conditions.push(ne(parcels.status, "Delivered"), ne(parcels.status, "Expired"));
+      }
 
       const query = db
         .select({
@@ -169,6 +212,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...parcel,
         senderName: sender.name,
         senderRating: sender.rating,
+        ...(!isParcelParticipant(parcel, req.user)
+          ? {
+              receiverPhone: undefined,
+              receiverEmail: undefined,
+              receiverLat: undefined,
+              receiverLng: undefined,
+              receiverLocationUpdatedAt: undefined,
+            }
+          : {}),
       }));
 
       res.json(result);
@@ -178,11 +230,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/parcels/:id", async (req, res) => {
+  app.get("/api/parcels/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const parcelWithSender = await storage.getParcelWithSender(req.params.id);
       if (!parcelWithSender) {
         return res.status(404).json({ error: "Parcel not found" });
+      }
+      if (!isParcelParticipant(parcelWithSender, req.user)) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
       }
       res.json({
         ...parcelWithSender,
@@ -191,6 +246,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch parcel" });
+    }
+  });
+
+  app.get("/api/receiver/parcels", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const email = normalizedEmail(req.user!.email);
+      const result = await db
+        .select({ parcel: parcels, sender: users })
+        .from(parcels)
+        .innerJoin(users, eq(parcels.senderId, users.id))
+        .where(email
+          ? sql`(${parcels.receiverId} = ${req.user!.uid} OR lower(${parcels.receiverEmail}) = ${email})`
+          : eq(parcels.receiverId, req.user!.uid))
+        .orderBy(desc(parcels.createdAt));
+
+      res.json(result.map(({ parcel, sender }) => ({
+        ...parcel,
+        senderName: sender.name,
+        senderRating: sender.rating,
+      })));
+    } catch (error) {
+      console.error("Failed to fetch receiver parcels:", error);
+      res.status(500).json({ error: "Failed to fetch incoming parcels" });
+    }
+  });
+
+  app.get("/api/parcels/:parcelId/tracking-events", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const parcel = await storage.getParcel(req.params.parcelId);
+      if (!parcel) return res.status(404).json({ error: "Parcel not found" });
+      if (!isParcelParticipant(parcel, req.user)) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
+      }
+      const events = await db
+        .select()
+        .from(parcelTrackingEvents)
+        .where(eq(parcelTrackingEvents.parcelId, req.params.parcelId))
+        .orderBy(desc(parcelTrackingEvents.createdAt));
+      res.json(events);
+    } catch (error) {
+      console.error("Failed to fetch tracking events:", error);
+      res.status(500).json({ error: "Failed to fetch tracking events" });
     }
   });
 
@@ -263,9 +360,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!oldParcel) return res.status(404).json({ error: "Parcel not found" });
 
       const userId = req.user!.uid;
-      const isParticipant = userId === oldParcel.senderId || userId === oldParcel.transporterId || userId === oldParcel.receiverId;
+      const isParticipant = isParcelParticipant(oldParcel, req.user);
       if (!isParticipant) {
         return res.status(403).json({ error: "Forbidden" });
+      }
+
+      if (req.body.status && req.body.status !== oldParcel.status) {
+        if (req.body.status === "Delivered") {
+          return res.status(409).json({ error: "A receiver must confirm delivery before it can be marked Delivered" });
+        }
+        if (oldParcel.transporterId !== userId) {
+          return res.status(403).json({ error: "Only the assigned carrier can update delivery status" });
+        }
       }
 
       const parcel = await storage.updateParcel(req.params.id, req.body);
@@ -275,20 +381,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send notification on status change
       if (oldParcel && parcel.status !== oldParcel.status) {
+        await recordTrackingEvent(parcel.id, parcel.status || "", userId);
         if (parcel.receiverId) {
           NotificationService.notifyStatusChange(
             parcel.receiverId,
             parcel.id,
-            oldParcel.status,
-            parcel.status
+            oldParcel.status || "",
+            parcel.status || ""
           ).catch(err => console.error("Failed to notify receiver:", err));
         }
         if (parcel.senderId && parcel.senderId !== parcel.receiverId) {
           NotificationService.notifyStatusChange(
             parcel.senderId,
             parcel.id,
-            oldParcel.status,
-            parcel.status
+            oldParcel.status || "",
+            parcel.status || ""
           ).catch(err => console.error("Failed to notify sender:", err));
         }
       }
@@ -306,6 +413,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "transporterId is required" });
       }
       const originalParcel = await storage.getParcel(req.params.id);
+      if (!originalParcel) {
+        return res.status(404).json({ error: "Parcel not found" });
+      }
+      const currentUser = await storage.getUser(transporterId);
+      if (originalParcel.senderId === transporterId ||
+        originalParcel.receiverId === transporterId ||
+        normalizedEmail(currentUser?.email) === normalizedEmail(originalParcel.receiverEmail)) {
+        return res.status(403).json({ error: "The sender or receiver cannot accept their own parcel" });
+      }
+      if (originalParcel.transporterId || !["Pending", "Paid"].includes(originalParcel.status)) {
+        return res.status(409).json({ error: `Parcel cannot be accepted while it is ${originalParcel.status}` });
+      }
       const parcel = await storage.updateParcel(req.params.id, {
         transporterId,
         status: "Accepted",
@@ -313,6 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!parcel) {
         return res.status(404).json({ error: "Parcel not found" });
       }
+      await recordTrackingEvent(parcel.id, "Accepted", transporterId);
       res.json(parcel);
 
       // Realtime: notify all participants of acceptance
@@ -341,7 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         NotificationService.notifyStatusChange(
           originalParcel.receiverId,
           req.params.id,
-          originalParcel.status,
+          originalParcel.status || "",
           "Accepted",
           { origin: originalParcel.origin, destination: originalParcel.destination }
         ).catch(err => console.error("Failed to send receiver accept notification:", err));
@@ -1759,8 +1879,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/parcels/:parcelId/messages", async (req, res) => {
+  app.get("/api/parcels/:parcelId/messages", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      const parcel = await storage.getParcel(req.params.parcelId);
+      if (!parcel) return res.status(404).json({ error: "Parcel not found" });
+      if (!isParcelParticipant(parcel, req.user)) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
+      }
       const msgs = await db
         .select({ id: parcelMessages.id, parcelId: parcelMessages.parcelId, senderId: parcelMessages.senderId, senderName: users.name, senderRole: parcelMessages.senderRole, content: parcelMessages.content, createdAt: parcelMessages.createdAt })
         .from(parcelMessages)
@@ -1795,7 +1920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Messages are only allowed once a carrier has accepted the parcel
       const preAcceptedStatuses = ["Pending", "Paid"];
-      if (preAcceptedStatuses.includes(parcel.status)) {
+      if (preAcceptedStatuses.includes(parcel.status || "")) {
         return res.status(403).json({ error: "Messaging is not available until the parcel has been accepted by a carrier" });
       }
 
@@ -1844,8 +1969,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/parcels/:parcelId/carrier-location", async (req, res) => {
+  app.get("/api/parcels/:parcelId/carrier-location", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      const parcel = await storage.getParcel(req.params.parcelId);
+      if (!parcel) return res.status(404).json({ error: "Parcel not found" });
+      if (!isParcelParticipant(parcel, req.user)) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
+      }
       const loc = await db.select().from(carrierLocations).where(eq(carrierLocations.parcelId, req.params.parcelId)).orderBy(desc(carrierLocations.timestamp)).limit(1);
       res.json(loc[0] || null);
     } catch (error) {
@@ -1872,8 +2002,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/parcels/:parcelId/receiver-location", async (req, res) => {
+  app.get("/api/parcels/:parcelId/receiver-location", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      const parcel = await storage.getParcel(req.params.parcelId);
+      if (!parcel) return res.status(404).json({ error: "Parcel not found" });
+      if (!isParcelParticipant(parcel, req.user)) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
+      }
       const loc = await db.select().from(receiverLocations).where(eq(receiverLocations.parcelId, req.params.parcelId)).orderBy(desc(receiverLocations.timestamp)).limit(1);
       res.json(loc[0] || null);
     } catch (error) {
@@ -1883,6 +2018,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/parcels/:parcelId/receiver-location", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      const parcel = await storage.getParcel(req.params.parcelId);
+      if (!parcel) return res.status(404).json({ error: "Parcel not found" });
+      const receiver = await storage.getUser(req.user!.uid);
+      const isReceiver = parcel.receiverId === req.user!.uid ||
+        normalizedEmail(receiver?.email) === normalizedEmail(parcel.receiverEmail);
+      if (!isReceiver) return res.status(403).json({ error: "Only the receiver can share their location" });
+
       const parsed = insertReceiverLocationSchema.safeParse({
         parcelId: req.params.parcelId,
         receiverId: req.user!.uid,
@@ -2425,9 +2567,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Parcel Photos API
-  app.get("/api/parcels/:parcelId/photos", async (req, res) => {
+  app.get("/api/parcels/:parcelId/photos", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { parcelId } = req.params;
+      const parcel = await storage.getParcel(parcelId);
+      if (!parcel) return res.status(404).json({ error: "Parcel not found" });
+      if (!isParcelParticipant(parcel, req.user)) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
+      }
       const photos = await db
         .select()
         .from(parcelPhotos)
@@ -2455,19 +2602,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Parcel not found" });
       }
 
-      const photo = await db.insert(parcelPhotos).values({
-        parcelId,
-        uploadedBy: userId,
-        photoUrl: photoData,
-        photoType,
-        caption: caption || null,
-        latitude: latitude || null,
-        longitude: longitude || null,
-      }).returning();
-
       const currentParcel = parcelResult[0];
+      const isCarrier = currentParcel.transporterId === userId;
+      const receiver = await storage.getUser(userId);
+      const isReceiver = currentParcel.receiverId === userId ||
+        normalizedEmail(receiver?.email) === normalizedEmail(currentParcel.receiverEmail);
+      if (!isCarrier && !isReceiver) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
+      }
+      if (photoType === "pickup" && !isCarrier) {
+        return res.status(403).json({ error: "Only the assigned carrier can upload pickup proof" });
+      }
+      if (photoType === "delivery" && !isCarrier && !isReceiver) {
+        return res.status(403).json({ error: "Only a parcel participant can upload delivery proof" });
+      }
       if (photoType === "pickup") {
+        if (!["Accepted", "Picked Up"].includes(currentParcel.status || "")) {
+          return res.status(409).json({ error: `Pickup proof is not valid while the parcel is ${currentParcel.status}` });
+        }
         await db.update(parcels).set({ status: "In Transit" }).where(eq(parcels.id, parcelId));
+        await recordTrackingEvent(parcelId, "In Transit", userId, "Pickup proof uploaded");
         // Realtime: carrier is now on the move
         const participantIds = [currentParcel.senderId, currentParcel.transporterId, currentParcel.receiverId]
           .filter(Boolean) as string[];
@@ -2480,30 +2634,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Notify sender and receiver that parcel is now in transit
         const notifyIds = [currentParcel.senderId, currentParcel.receiverId].filter(Boolean) as string[];
         for (const uid of notifyIds) {
-          NotificationService.notifyStatusChange(uid, parcelId, currentParcel.status, "In Transit", {
+          NotificationService.notifyStatusChange(uid, parcelId, currentParcel.status || "", "In Transit", {
             origin: currentParcel.origin,
             destination: currentParcel.destination,
           }).catch(err => console.error("Notify in-transit error:", err));
         }
       } else if (photoType === "delivery") {
-        await db.update(parcels).set({ status: "Delivered" }).where(eq(parcels.id, parcelId));
-        const participantIds = [currentParcel.senderId, currentParcel.transporterId, currentParcel.receiverId]
-          .filter(Boolean) as string[];
-        broadcastToUsers(participantIds, {
-          type: "parcel:status",
-          parcelId,
-          status: "Delivered",
-          onTheMove: false,
-        });
-        // Notify sender and receiver that parcel has been delivered
-        const notifyIds = [currentParcel.senderId, currentParcel.receiverId].filter(Boolean) as string[];
-        for (const uid of notifyIds) {
-          NotificationService.notifyStatusChange(uid, parcelId, currentParcel.status, "Delivered", {
-            origin: currentParcel.origin,
-            destination: currentParcel.destination,
-          }).catch(err => console.error("Notify delivered error:", err));
+        if (!["In Transit", "Arrived"].includes(currentParcel.status || "")) {
+          return res.status(409).json({ error: `Delivery proof is not valid while the parcel is ${currentParcel.status}` });
+        }
+        if (currentParcel.receiverId) {
+          NotificationService.requestDeliveryConfirmation(currentParcel.receiverId, parcelId)
+            .catch(err => console.error("Notify receiver confirmation error:", err));
         }
       }
+
+      const photo = await db.insert(parcelPhotos).values({
+        parcelId,
+        uploadedBy: userId,
+        photoUrl: photoData,
+        photoType,
+        caption: caption || null,
+        latitude: latitude || null,
+        longitude: longitude || null,
+      }).returning();
 
       res.status(201).json(photo[0]);
     } catch (error: any) {
@@ -2513,12 +2667,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ─── ETA Endpoint ─────────────────────────────────────────────────────────
-  app.get("/api/parcels/:parcelId/eta", async (req, res) => {
+  app.get("/api/parcels/:parcelId/eta", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { parcelId } = req.params;
       const parcel = await storage.getParcel(parcelId);
       if (!parcel) {
         return res.status(404).json({ error: "Parcel not found" });
+      }
+      if (!isParcelParticipant(parcel, req.user)) {
+        return res.status(403).json({ error: "You do not have access to this parcel" });
       }
 
       // Get latest carrier location
@@ -2527,7 +2684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(desc(carrierLocations.timestamp))
         .limit(1);
 
-      if (!loc.length || !parcel.destinationLat || !parcel.destinationLng) {
+      if (!loc.length || parcel.destinationLat == null || parcel.destinationLng == null) {
         return res.json({ available: false, message: "Location not available yet" });
       }
 
@@ -2547,7 +2704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const etaMinutes = Math.round((distanceKm / speedKmh) * 60);
 
-      const locationAge = Date.now() - new Date(carrierLoc.timestamp).getTime();
+      const locationAge = Date.now() - new Date(carrierLoc.timestamp || 0).getTime();
       const isStale = locationAge > 10 * 60 * 1000; // > 10 minutes old
 
       res.json({

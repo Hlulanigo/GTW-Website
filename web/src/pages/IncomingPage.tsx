@@ -8,11 +8,11 @@ import { ParcelCard } from "@/components/ParcelCard";
 
 export default function IncomingPage() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
 
   const { data: incoming = [], isLoading } = useQuery({
     queryKey: ["incoming", user?.uid],
-    queryFn: () => api.get<any[]>(`/api/parcels?receiverId=${user?.uid}`),
+    queryFn: () => api.get<any[]>("/api/receiver/parcels"),
     enabled: !!user,
   });
 

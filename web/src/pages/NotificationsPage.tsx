@@ -43,7 +43,10 @@ function getNotificationIcon(type: string) {
 function getNotificationLink(notification: Notification): string | null {
   try {
     const data = notification.data ? JSON.parse(notification.data) : {};
-    if (data.parcelId) return `/parcels/${data.parcelId}`;
+    if (data.parcelId) {
+      const receiverTypes = new Set(["new_incoming_parcel", "confirm_delivery", "carrier_nearby", "delivery_proof"]);
+      return receiverTypes.has(notification.type) ? `/incoming/${data.parcelId}` : `/parcels/${data.parcelId}`;
+    }
     if (data.conversationId) return `/conversations/${data.conversationId}`;
     if (data.routeId) return `/routes/${data.routeId}`;
   } catch {}

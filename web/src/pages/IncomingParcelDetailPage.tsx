@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Package, Clock, User, MessageCircle, Star, Navigation, Phone, ChevronDown } from "lucide-react";
+import { MapPin, Package, Clock, User, MessageCircle, Star, Navigation, Phone, ChevronDown, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,13 +53,37 @@ export default function IncomingParcelDetailPage() {
     enabled: !!id,
   });
 
+  const { data: trackingEvents = [] } = useQuery<any[]>({
+    queryKey: ["parcel-tracking-events", id],
+    queryFn: () => api.get<any[]>(`/api/parcels/${id}/tracking-events`),
+    enabled: !!id,
+  });
+
+  const { data: eta } = useQuery<any>({
+    queryKey: ["parcel-eta", id],
+    queryFn: () => api.get<any>(`/api/parcels/${id}/eta`),
+    enabled: !!id && !!parcel && ["Picked Up", "In Transit", "Arrived"].includes(parcel.status),
+    refetchInterval: 60000,
+  });
+
+  const confirmDelivery = useMutation({
+    mutationFn: () => api.post<any>(`/api/parcels/${id}/confirm-delivery`, {}),
+    onSuccess: () => {
+      toast.success("Delivery confirmed. Thank you!");
+      qc.invalidateQueries({ queryKey: ["parcel", id] });
+      qc.invalidateQueries({ queryKey: ["parcel-tracking-events", id] });
+      qc.invalidateQueries({ queryKey: ["incoming", user?.uid] });
+    },
+    onError: (err: any) => toast.error(err.message || "Could not confirm delivery"),
+  });
+
   const handleSubmitReview = async () => {
     const carrierId = parcel?.transporterId || parcel?.carrierId;
     if (!carrierId) return;
     setSubmittingReview(true);
     try {
       await api.post("/api/reviews", {
-        parcelId: parseInt(id!),
+        parcelId: id!,
         revieweeId: carrierId,
         rating,
         comment: comment.trim(),
@@ -98,7 +122,8 @@ export default function IncomingParcelDetailPage() {
     );
   }
 
-  const isDelivered = parcel.status === "Delivered" || parcel.status === "Arrived";
+  const isDelivered = parcel.status === "Delivered";
+  const canConfirmDelivery = ["In Transit", "Arrived"].includes(parcel.status) && !parcel.deliveryConfirmedAt;
   const statusCfg = statusColors[parcel.status] || "bg-slate-100 text-slate-500";
 
   const fromAddress = parcel.origin || parcel.fromAddress;
@@ -147,6 +172,90 @@ export default function IncomingParcelDetailPage() {
               className="mt-3"
             />
           </div>
+
+          {(eta?.available || eta?.message) && (
+            <div className={`card p-4 flex items-start gap-3 ${eta?.isStale ? "border border-warning/30" : ""}`}>
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Navigation size={18} className="text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-navy dark:text-white">
+                  {eta.available ? `${eta.etaMinutes} min away` : "Live location unavailable"}
+                </p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {eta.available
+                    ? `${eta.distance} km from the delivery address${eta.isStale ? " · last update may be outdated" : ""}`
+                    : eta.message}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-navy dark:text-white">Tracking history</h3>
+              <Clock size={16} className="text-slate-400" />
+            </div>
+            {trackingEvents.length === 0 ? (
+              <div className="flex items-center gap-2 text-sm text-slate-400">
+                <AlertCircle size={16} />
+                Tracking updates will appear as the parcel moves.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {trackingEvents.map((event: any, index: number) => (
+                  <div key={event.id || `${event.eventType}-${index}`} className="flex items-start gap-3">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                      event.eventType === "Delivered" ? "bg-success/15 text-success" : "bg-primary/10 text-primary"
+                    }`}>
+                      {event.eventType === "Delivered" ? <CheckCircle2 size={15} /> : <Package size={14} />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-navy dark:text-white">{event.eventType}</p>
+                      <p className="text-xs text-slate-400">
+                        {event.createdAt ? new Date(event.createdAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "Recently"}
+                      </p>
+                      {event.note && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{event.note}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {parcel.deliveryConfirmedAt ? (
+            <div className="card p-4 flex items-start gap-3 border border-success/20">
+              <CheckCircle2 size={20} className="text-success mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold text-navy dark:text-white">Receipt confirmed</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Confirmed {new Date(parcel.deliveryConfirmedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                </p>
+              </div>
+            </div>
+          ) : canConfirmDelivery ? (
+            <div className="card p-5 border border-primary/20 bg-primary/[0.03]">
+              <div className="flex items-start gap-3 mb-4">
+                <ShieldCheck size={21} className="text-primary mt-0.5 shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-navy dark:text-white">Have you received this parcel?</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Confirm only after the parcel is in your hands. This records the official delivery time.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (window.confirm("Confirm that you received this parcel?")) confirmDelivery.mutate();
+                }}
+                disabled={confirmDelivery.isPending}
+                className="btn-primary w-full py-3 flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <CheckCircle2 size={17} />
+                {confirmDelivery.isPending ? "Confirming..." : "Confirm receipt"}
+              </button>
+            </div>
+          ) : null}
 
           <div className="card p-5 space-y-3">
             <h3 className="font-semibold text-navy dark:text-white">Parcel Details</h3>

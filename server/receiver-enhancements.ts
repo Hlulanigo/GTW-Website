@@ -1,10 +1,15 @@
 import type { Express } from "express";
 import { db, storage } from "./storage";
-import { parcels, receiverLocations, carrierLocations } from "../shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { parcels, receiverLocations, carrierLocations, parcelTrackingEvents } from "../shared/schema";
+import { eq, desc, and, inArray, isNull, or } from "drizzle-orm";
 import { requireAuth, type AuthenticatedRequest } from "./firebase-admin";
 import { NotificationService } from "./notification-service";
+import { broadcastToUsers } from "./realtime";
 import * as crypto from "crypto";
+
+function normalizedEmail(email?: string | null) {
+  return email?.trim().toLowerCase() || null;
+}
 
 /**
  * Calculate distance between two coordinates (Haversine formula)
@@ -87,7 +92,7 @@ export function registerReceiverEnhancements(app: Express) {
         let receiverLng = parcel.receiverLng;
 
         // Try to get from receiverLocations table if not in parcel
-        if (!receiverLat || !receiverLng) {
+        if (receiverLat == null || receiverLng == null) {
           const receiverLoc = await db
             .select()
             .from(receiverLocations)
@@ -168,7 +173,7 @@ export function registerReceiverEnhancements(app: Express) {
           return res.status(404).json({ error: "Parcel not found" });
         }
 
-        // Verify user is receiver or carrier
+        // Proof is evidence only. It must not complete delivery on its own.
         const isReceiver = parcel.receiverId === req.user!.uid;
         const isCarrier = parcel.transporterId === req.user!.uid;
         const user = await storage.getUser(req.user!.uid);
@@ -181,12 +186,7 @@ export function registerReceiverEnhancements(app: Express) {
             .json({ error: "Only receiver or carrier can upload proof" });
         }
 
-        // Update parcel with proof
-        await storage.updateParcel(parcelId, {
-          status: "Delivered",
-        });
-
-        // Store photo URL in parcel (you might want a separate table for multiple photos)
+        // Store photo evidence without changing the delivery state.
         await db
           .update(parcels)
           .set({ photoUrl })
@@ -198,7 +198,7 @@ export function registerReceiverEnhancements(app: Express) {
             parcel.receiverId,
             {
               title: "Delivery Proof Uploaded",
-              body: "Your carrier has uploaded proof of delivery",
+              body: "Your carrier uploaded delivery evidence. Please confirm whether you received the parcel.",
               data: { type: "delivery_proof", parcelId },
             }
           );
@@ -213,6 +213,97 @@ export function registerReceiverEnhancements(app: Express) {
         res.status(500).json({ error: "Failed to upload delivery proof" });
       }
     }
+  );
+
+  /**
+   * Confirm delivery as the receiver. This is the only receiver-facing
+   * completion path and is intentionally idempotent.
+   */
+  app.post(
+    "/api/parcels/:parcelId/confirm-delivery",
+    requireAuth,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { parcelId } = req.params;
+        const parcel = await storage.getParcel(parcelId);
+        if (!parcel) return res.status(404).json({ error: "Parcel not found" });
+
+        const user = await storage.getUser(req.user!.uid);
+        const isReceiver = parcel.receiverId === req.user!.uid ||
+          normalizedEmail(user?.email) === normalizedEmail(parcel.receiverEmail);
+        if (!isReceiver) {
+          return res.status(403).json({ error: "Only the receiver can confirm delivery" });
+        }
+
+        if (parcel.deliveryConfirmedAt) {
+          return res.json({ success: true, alreadyConfirmed: true, parcel });
+        }
+        if (!["In Transit", "Arrived", "Delivered"].includes(parcel.status || "")) {
+          return res.status(409).json({
+            error: `Delivery cannot be confirmed while the parcel is ${parcel.status}`,
+          });
+        }
+
+        const notes = typeof req.body?.notes === "string"
+          ? req.body.notes.trim().slice(0, 500)
+          : null;
+        const confirmedAt = new Date();
+        const update = await db
+          .update(parcels)
+          .set({
+            status: "Delivered",
+            deliveryConfirmedAt: confirmedAt,
+            deliveryConfirmedBy: req.user!.uid,
+            deliveryConfirmationMethod: "receiver_self_confirmed",
+            deliveryConfirmationNotes: notes,
+          })
+          .where(and(
+            eq(parcels.id, parcelId),
+            isNull(parcels.deliveryConfirmedAt),
+            inArray(parcels.status, ["In Transit", "Arrived", "Delivered"]),
+          ))
+          .returning();
+
+        if (!update[0]) {
+          const current = await storage.getParcel(parcelId);
+          if (current?.deliveryConfirmedAt) {
+            return res.json({ success: true, alreadyConfirmed: true, parcel: current });
+          }
+          return res.status(409).json({ error: "Delivery status changed; please refresh and try again" });
+        }
+
+        await db.insert(parcelTrackingEvents).values({
+          parcelId,
+          eventType: "Delivered",
+          createdByUserId: req.user!.uid,
+          note: "Confirmed by receiver",
+        });
+
+        const participantIds = [update[0].senderId, update[0].transporterId, update[0].receiverId]
+          .filter(Boolean) as string[];
+        broadcastToUsers(participantIds, {
+          type: "parcel:status",
+          parcelId,
+          status: "Delivered",
+          onTheMove: false,
+        });
+
+        for (const recipientId of new Set([update[0].senderId, update[0].transporterId].filter(Boolean) as string[])) {
+          NotificationService.notifyStatusChange(
+            recipientId,
+            parcelId,
+            parcel.status || "",
+            "Delivered",
+            { origin: parcel.origin, destination: parcel.destination },
+          ).catch(error => console.error("Failed to notify delivery participant:", error));
+        }
+
+        res.json({ success: true, alreadyConfirmed: false, parcel: update[0] });
+      } catch (error) {
+        console.error("Failed to confirm delivery:", error);
+        res.status(500).json({ error: "Failed to confirm delivery" });
+      }
+    },
   );
 
   /**
@@ -264,10 +355,13 @@ export function registerReceiverEnhancements(app: Express) {
         const userId = req.user!.uid;
 
         // Get all parcels where user is receiver
+        const user = await storage.getUser(userId);
         const allParcels = await db
           .select()
           .from(parcels)
-          .where(eq(parcels.receiverId, userId));
+          .where(user?.email
+            ? or(eq(parcels.receiverId, userId), eq(parcels.receiverEmail, user.email))
+            : eq(parcels.receiverId, userId));
 
         const stats = {
           totalReceived: allParcels.length,

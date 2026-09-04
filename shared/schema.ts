@@ -110,6 +110,10 @@ export const parcels = pgTable("parcels", {
   receiverLat: real("receiver_lat"),
   receiverLng: real("receiver_lng"),
   receiverLocationUpdatedAt: timestamp("receiver_location_updated_at"),
+  deliveryConfirmedAt: timestamp("delivery_confirmed_at"),
+  deliveryConfirmedBy: varchar("delivery_confirmed_by").references(() => users.id),
+  deliveryConfirmationMethod: text("delivery_confirmation_method"),
+  deliveryConfirmationNotes: text("delivery_confirmation_notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

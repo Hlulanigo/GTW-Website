@@ -2608,14 +2608,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parcel = await storage.getParcel(parcelId);
       if (!parcel) return res.status(404).json({ error: "Parcel not found" });
       if (!isParcelParticipant(parcel, req.user)) {
-  if (!isParcelParticipant(parcel, req.user)) {
-    return res.status(403).json({ error: "You do not have access to this parcel" });
+        return res.status(403).json({ error: "You do not have access to this parcel" });
       }
+
       const photos = await db
         .select()
         .from(parcelPhotos)
         .where(eq(parcelPhotos.parcelId, parcelId))
         .orderBy(desc(parcelPhotos.createdAt));
+
       res.json(photos);
     } catch (error: any) {
       console.error("Failed to fetch parcel photos:", error);
@@ -2664,8 +2665,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Only the assigned carrier can upload pickup proof" });
       }
       if (photoType === "delivery" && !isCarrier && !isReceiver) {
-        return res.status(403).json({ error: "Only the carrier or receiver can upload delivery proof" });
-      }
         return res.status(403).json({ error: "Only the carrier or receiver can upload delivery proof" });
       }
 
@@ -2722,16 +2721,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .catch(err => console.error("Notify receiver confirmation error:", err));
         }
       }
-
-      const photo = await db.insert(parcelPhotos).values({
-        parcelId,
-        uploadedBy: userId,
-        photoUrl: photoData,
-        photoType,
-        caption: caption || null,
-        latitude: latitude || null,
-        longitude: longitude || null,
-      }).returning();
 
       res.status(201).json(photo[0]);
     } catch (error: any) {

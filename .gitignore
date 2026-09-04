@@ -34,6 +34,10 @@ yarn-error.*
 .env*.local
 # firebase admin service account (keep out of git)
 server/firebase-service-account.json
+attached_assets/*firebase-adminsdk*.json
+.config/ngrok/ngrok.yml
+logs/
+server.log
 
 # typescript
 *.tsbuildinfo

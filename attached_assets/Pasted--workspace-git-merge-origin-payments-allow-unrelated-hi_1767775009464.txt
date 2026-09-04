@@ -1,0 +1,81 @@
+/workspace$ git merge origin/payments --allow-unrelated-histories
+fatal: update_ref failed for ref 'ORIG_HEAD': cannot lock ref 'ORIG_HEAD': Unable to create '/home/runner/workspace/.git/ORIG_HEAD.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+~/workspace$ rm -f .git/ORIG_HEAD.lock .git/index.lock .git/config.lock
+~/workspace$ git merge origin/payments --allow-unrelated-histories
+Auto-merging app.json
+CONFLICT (add/add): Merge conflict in app.json
+warning: Cannot merge binary files: assets/images/android-icon-foreground.png (HEAD vs. origin/payments)
+Auto-merging assets/images/android-icon-foreground.png
+CONFLICT (add/add): Merge conflict in assets/images/android-icon-foreground.png
+warning: Cannot merge binary files: assets/images/favicon.png (HEAD vs. origin/payments)
+Auto-merging assets/images/favicon.png
+CONFLICT (add/add): Merge conflict in assets/images/favicon.png
+warning: Cannot merge binary files: assets/images/icon.png (HEAD vs. origin/payments)
+Auto-merging assets/images/icon.png
+CONFLICT (add/add): Merge conflict in assets/images/icon.png
+warning: Cannot merge binary files: assets/images/splash-icon.png (HEAD vs. origin/payments)
+Auto-merging assets/images/splash-icon.png
+CONFLICT (add/add): Merge conflict in assets/images/splash-icon.png
+Auto-merging client/constants/theme.ts
+CONFLICT (add/add): Merge conflict in client/constants/theme.ts
+Auto-merging client/contexts/AuthContext.tsx
+CONFLICT (add/add): Merge conflict in client/contexts/AuthContext.tsx
+Auto-merging client/hooks/useCarrierLocation.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/useCarrierLocation.tsx
+Auto-merging client/hooks/useConnections.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/useConnections.tsx
+Auto-merging client/hooks/useConversations.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/useConversations.tsx
+Auto-merging client/hooks/useMessages.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/useMessages.tsx
+Auto-merging client/hooks/useParcels.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/useParcels.tsx
+Auto-merging client/hooks/usePayments.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/usePayments.tsx
+Auto-merging client/hooks/useReceiverLocation.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/useReceiverLocation.tsx
+Auto-merging client/hooks/useUserSearch.tsx
+CONFLICT (add/add): Merge conflict in client/hooks/useUserSearch.tsx
+Auto-merging client/lib/notifications.ts
+CONFLICT (add/add): Merge conflict in client/lib/notifications.ts
+Auto-merging client/navigation/BrowseStackNavigator.tsx
+CONFLICT (add/add): Merge conflict in client/navigation/BrowseStackNavigator.tsx
+Auto-merging client/navigation/ProfileStackNavigator.tsx
+CONFLICT (add/add): Merge conflict in client/navigation/ProfileStackNavigator.tsx
+Auto-merging client/navigation/RootStackNavigator.tsx
+CONFLICT (add/add): Merge conflict in client/navigation/RootStackNavigator.tsx
+Auto-merging client/screens/CreateParcelScreen.tsx
+CONFLICT (add/add): Merge conflict in client/screens/CreateParcelScreen.tsx
+Auto-merging client/screens/EditParcelScreen.tsx
+CONFLICT (add/add): Merge conflict in client/screens/EditParcelScreen.tsx
+Auto-merging client/screens/IncomingParcelDetailScreen.tsx
+CONFLICT (add/add): Merge conflict in client/screens/IncomingParcelDetailScreen.tsx
+Auto-merging client/screens/ParcelDetailScreen.tsx
+CONFLICT (add/add): Merge conflict in client/screens/ParcelDetailScreen.tsx
+Auto-merging client/screens/PaymentHistoryScreen.tsx
+CONFLICT (add/add): Merge conflict in client/screens/PaymentHistoryScreen.tsx
+Auto-merging client/screens/ProfileScreen.tsx
+CONFLICT (add/add): Merge conflict in client/screens/ProfileScreen.tsx
+Auto-merging client/screens/RouteDetailScreen.tsx
+CONFLICT (add/add): Merge conflict in client/screens/RouteDetailScreen.tsx
+Auto-merging package-lock.json
+CONFLICT (add/add): Merge conflict in package-lock.json
+Auto-merging package.json
+CONFLICT (add/add): Merge conflict in package.json
+Auto-merging server/firebase-admin.ts
+CONFLICT (add/add): Merge conflict in server/firebase-admin.ts
+Auto-merging server/index.ts
+CONFLICT (add/add): Merge conflict in server/index.ts
+Auto-merging server/routes.ts
+CONFLICT (add/add): Merge conflict in server/routes.ts
+Auto-merging server/storage.ts
+CONFLICT (add/add): Merge conflict in server/storage.ts
+Auto-merging shared/schema.ts
+CONFLICT (add/add): Merge conflict in shared/schema.ts
+Automatic merge failed; fix conflicts and then commit the result.

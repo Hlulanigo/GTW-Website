@@ -1,0 +1,3280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The GTW - Go The Way | Smart Delivery Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css" integrity="sha512-6lbuDprEQSHkY6PhRCrt/LhwQq8IKE3UbnuEJv52A+/vK0+Tv8CwGH+0g7NRNuGSvzIx8vkd4UlsWnkl4UUtsw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #F97316;
+            --primary-dark: #EA580C;
+            --secondary: #B45309;
+            --accent: #F59E0B;
+            --success: #10b981;
+            --dark: #0f172a;
+            --gray-900: #1a202c;
+            --gray-800: #2d3748;
+            --gray-700: #4a5568;
+            --gray-100: #f7fafc;
+            --gray-50: #f9fafb;
+        }
+
+        body.dark-mode {
+            --dark: #f9fafb;
+            --gray-900: #ffffff;
+            --gray-800: #f3f4f6;
+            --gray-700: #e5e7eb;
+            --gray-50: #1a202c;
+            --gray-100: #2d3748;
+            background: #0f172a;
+            color: #f9fafb;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--gray-900);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background: white;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode nav {
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: -0.5px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 3rem;
+        }
+
+        nav a {
+            color: var(--gray-700);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            color: var(--gray-700);
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(20deg);
+        }
+
+        .cta-nav {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white !important;
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+        }
+
+        .cta-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 60px;
+            min-height: calc(100vh - 60px);
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        body.dark-mode .hero {
+            background: linear-gradient(135deg, #1a202c 0%, #0f172a 100%);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(180, 83, 9, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-text h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            animation: slideInDown 0.8s ease;
+        }
+
+        .hero-text h1 span {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text p {
+            font-size: 1.25rem;
+            color: var(--gray-700);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            animation: slideInUp 0.8s ease 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            animation: slideInUp 0.8s ease 0.4s both;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(249, 115, 22, 0.5);
+        }
+
+        .btn.secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        body.dark-mode .btn.secondary {
+            background: var(--gray-100);
+        }
+
+        .btn.secondary:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .hero-visual {
+            position: relative;
+            animation: slideInRight 0.8s ease 0.3s both;
+        }
+
+        .phone-mockup {
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 30px 60px rgba(249, 115, 22, 0.3);
+            position: relative;
+        }
+
+        /* Demo modal and mock tracking */
+        .demo-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 2rem;
+        }
+
+        .demo-modal {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(15,23,42,0.25);
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 0;
+        }
+
+        .demo-left {
+            padding: 1.5rem;
+        }
+
+        .demo-right {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(180deg, #fff 0%, #fff 100%);
+            border-left: 1px solid rgba(15,23,42,0.04);
+        }
+
+        .map-mock {
+            width: 100%;
+            height: 420px;
+            background: linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-path {
+            position: absolute;
+            width: 90%;
+            height: 70%;
+            left: 5%;
+            top: 15%;
+        }
+
+        .map-marker {
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 6px 18px rgba(249,115,22,0.25);
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+
+        .demo-actions {
+            display:flex;
+            gap:0.5rem;
+            margin-top:1rem;
+        }
+
+        @media (max-width:900px){
+            .demo-modal{grid-template-columns:1fr}
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 36px;
+            padding: 40px 20px 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        body.dark-mode .phone-screen {
+            background: #1a202c;
+        }
+
+        .phone-screen h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .phone-screen p {
+            color: var(--gray-700);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Section Styles */
+        section {
+            padding: 6rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .section-header h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            color: var(--gray-700);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Live Notifications */
+        .notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            max-width: 350px;
+            animation: slideInRight 0.5s ease;
+            z-index: 999;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        body.dark-mode .notification {
+            background: #2d3748;
+            color: #f9fafb;
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .notification-icon {
+            font-size: 1.5rem;
+        }
+
+        .notification-content h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 0.95rem;
+        }
+
+        .notification-content p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* Animated Stats */
+        .stats {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 4rem 2rem;
+        }
+
+        .stats h2 {
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        /* Features Carousel */
+        .features-carousel-container {
+            background: var(--gray-50);
+        }
+
+        body.dark-mode .features-carousel-container {
+            background: #0f172a;
+        }
+
+        .carousel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .carousel {
+            background: #2d3748;
+        }
+
+        .carousel-wrapper {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 12px;
+        }
+
+        .carousel-content h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .carousel-content p {
+            font-size: 1rem;
+            color: var(--gray-700);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
+            background: var(--primary);
+            width: 32px;
+            border-radius: 6px;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            background: white;
+        }
+
+        body.dark-mode .how-it-works {
+            background: #1a202c;
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            text-align: center;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0 auto 1rem;
+        }
+
+        .step h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .step p {
+            color: var(--gray-700);
+            line-height: 1.6;
+        }
+
+        /* Pricing Plans */
+        .pricing {
+            background: var(--gray-50);
+        }
+
+        body.dark-mode .pricing {
+            background: #0f172a;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            border: 2px solid rgba(249, 115, 22, 0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        body.dark-mode .pricing-card {
+            background: #2d3748;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary);
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(249, 115, 22, 0.2);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(249, 115, 22, 0.15);
+        }
+
+        .pricing-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .pricing-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-period {
+            color: var(--gray-700);
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 0.5rem 0;
+            color: var(--gray-700);
+        }
+
+        .pricing-features li::before {
+            content: '✓ ';
+            color: var(--success);
+            font-weight: 800;
+            margin-right: 0.5rem;
+        }
+
+        /* FAQ Styles */
+        .faq-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .faq-item {
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        body.dark-mode .faq-item {
+            background: #2d3748;
+            border-color: rgba(249, 115, 22, 0.4);
+        }
+
+        .faq-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1);
+        }
+
+        .faq-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .faq-header:hover {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        body.dark-mode .faq-header:hover {
+            background: rgba(249, 115, 22, 0.1);
+        }
+
+        .faq-header h3 {
+            font-size: 1.1rem;
+            color: var(--dark);
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .faq-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            transition: transform 0.3s ease;
+            font-weight: 300;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(249, 115, 22, 0.02);
+        }
+
+        body.dark-mode .faq-content {
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .faq-item.active .faq-content {
+            max-height: 300px;
+        }
+
+        .faq-content p {
+            padding: 0 1.5rem 1.5rem;
+            color: var(--gray-700);
+            line-height: 1.8;
+        }
+
+        /* Features Grid */
+        .features {
+            background: var(--gray-50);
+        }
+
+        body.dark-mode .features {
+            background: #0f172a;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark-mode .feature-card {
+            background: #2d3748;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(249, 115, 22, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translate(-100%, -100%);
+            }
+            100% {
+                transform: translate(100%, 100%);
+            }
+        }
+
+        .feature-icon > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.15) rotateY(360deg);
+            box-shadow: 0 16px 40px rgba(249, 115, 22, 0.4);
+        }
+
+        .feature-card:hover .feature-icon::before {
+            animation: shimmer 1.5s infinite;
+        }
+
+        .feature-card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 0.75rem;
+            color: var(--dark);
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .feature-card p {
+            color: var(--gray-700);
+            line-height: 1.85;
+            font-size: 0.98rem;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            background: white;
+        }
+
+        body.dark-mode .testimonials {
+            background: #1a202c;
+        }
+
+        .testimonials-carousel {
+            position: relative;
+        }
+
+        .testimonials-wrapper {
+            display: flex;
+            transition: transform 0.5s ease;
+            gap: 2rem;
+        }
+
+        .testimonial {
+            min-width: 100%;
+            background: var(--gray-50);
+            padding: 2rem;
+            border-radius: 16px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .testimonial {
+            background: #2d3748;
+        }
+
+        .testimonial:hover {
+            box-shadow: 0 8px 30px rgba(249, 115, 22, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .stars {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .testimonial-text {
+            color: var(--gray-700);
+            margin-bottom: 1.5rem;
+            font-style: italic;
+            line-height: 1.8;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .author-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .author-role {
+            color: var(--gray-700);
+            font-size: 0.9rem;
+        }
+
+        /* Form Styles */
+        .contact-form, .complaint-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(249, 115, 22, 0.1);
+        }
+
+        body.dark-mode .contact-form,
+        body.dark-mode .complaint-form {
+            background: #2d3748;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 0.875rem;
+            border: 2px solid var(--gray-100);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+            color: #000;
+        }
+
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group textarea,
+        body.dark-mode .form-group select {
+            background: #1a202c;
+            color: #f9fafb;
+            border-color: #4a5568;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+
+        .form-group input.error,
+        .form-group textarea.error,
+        .form-group select.error {
+            border-color: #ef4444;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .form-actions .btn {
+            flex: 0 0 auto;
+        }
+
+        .btn-loader {
+            font-size: 1.2rem;
+        }
+
+        .form-status {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            display: none;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+            display: block;
+        }
+
+        .form-status.error {
+            background: #fee2e2;
+            color: #7f1d1d;
+            border: 1px solid #fca5a5;
+            display: block;
+        }
+
+        .form-status.loading {
+            background: #dbeafe;
+            color: #0c2d6b;
+            border: 1px solid #93c5fd;
+            display: block;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideInUp 0.3s ease;
+        }
+
+        body.dark-mode .modal-content {
+            background: #2d3748;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+            border-bottom: 1px solid var(--gray-100);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .complaint-form {
+            padding: 2rem;
+            background: transparent;
+            border: none;
+        }
+
+        /* Feature Modal Styles */
+        .feature-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+            padding: 1rem;
+        }
+
+        .feature-modal-backdrop.active {
+            display: flex;
+        }
+
+        .feature-modal {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            animation: slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            padding: 2.5rem 2rem;
+        }
+
+        body.dark-mode .feature-modal {
+            background: #2d3748;
+            color: #f9fafb;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            color: var(--gray-700);
+            transition: all 0.3s ease;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        body.dark-mode .modal-close {
+            color: #e5e7eb;
+        }
+
+        .modal-close:hover {
+            color: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        .feature-modal-icon {
+            font-size: 5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            animation: bounceIn 0.6s ease;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 12px 30px rgba(249, 115, 22, 0.3);
+        }
+
+        .feature-modal h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        body.dark-mode .feature-modal h2 {
+            color: #f9fafb;
+            -webkit-text-fill-color: unset;
+            background: unset;
+        }
+
+        #modalContent {
+            color: var(--gray-700);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        body.dark-mode #modalContent {
+            color: #cbd5e1;
+        }
+
+        .modal-features-list {
+            background: rgba(249, 115, 22, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        body.dark-mode .modal-features-list {
+            background: rgba(249, 115, 22, 0.15);
+        }
+
+        .modal-features-list h4 {
+            color: var(--dark);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            margin-top: 0;
+        }
+
+        body.dark-mode .modal-features-list h4 {
+            color: #f9fafb;
+        }
+
+        .modal-features-list li {
+            color: var(--gray-700);
+            margin-bottom: 0.7rem;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        body.dark-mode .modal-features-list li {
+            color: #cbd5e1;
+        }
+
+        .modal-features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .modal-cta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .modal-cta .btn {
+            flex: 1;
+            padding: 0.9rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-cta .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+        }
+
+        .modal-cta .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5);
+        }
+
+        .modal-cta .btn-secondary {
+            background: var(--gray-100);
+            color: var(--dark);
+            border: 2px solid var(--gray-100);
+        }
+
+        body.dark-mode .modal-cta .btn-secondary {
+            background: #1a202c;
+            color: #f9fafb;
+            border-color: #4a5568;
+        }
+
+        .modal-cta .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        body.dark-mode .modal-cta .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        /* Chat Widget */
+        .chat-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 998;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        body.dark-mode .chat-widget {
+            background: #2d3748;
+        }
+
+        .chat-widget.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-message.agent {
+            background: var(--gray-100);
+            color: var(--dark);
+            align-self: flex-start;
+        }
+
+        body.dark-mode .chat-message.agent {
+            background: #1a202c;
+            color: #f9fafb;
+        }
+
+        .chat-message.user {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            align-self: flex-end;
+        }
+
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid var(--gray-100);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .chat-input {
+            border-color: #4a5568;
+        }
+
+        .chat-input input {
+            flex: 1;
+            border: 1px solid var(--gray-100);
+            border-radius: 8px;
+            padding: 0.5rem;
+            font-family: inherit;
+            color: #000;
+        }
+
+        body.dark-mode .chat-input input {
+            background: #1a202c;
+            color: #f9fafb;
+            border-color: #4a5568;
+        }
+
+        .chat-input button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .chat-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+            transition: all 0.3s ease;
+            z-index: 997;
+        }
+
+        .chat-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-toggle.hidden {
+            display: none;
+        }
+
+        /* App Download Section */
+        .app-download {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .download-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .download-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .download-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Service Status */
+        .service-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        body.dark-mode .service-status {
+            background: #1a202c;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.loading {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            flex: 1;
+        }
+
+        .status-text h4 {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .status-text p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* Animations */
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(20px); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            border-radius: 24px;
+            padding: 4rem;
+            text-align: center;
+            margin: 4rem 0;
+        }
+
+        body.dark-mode .cta-section {
+            background: linear-gradient(135deg, #1a202c 0%, #0f172a 100%);
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            color: var(--gray-700);
+            margin-bottom: 2rem;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(180deg, #0f172a 0%, #051015 100%);
+            color: white;
+            padding: 4rem 2rem 2rem;
+            border-top: 2px solid rgba(249, 115, 22, 0.2);
+            margin-top: 6rem;
+        }
+
+        body.dark-mode footer {
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-section h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.8rem;
+        }
+
+        footer a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        footer a:hover {
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-logo img {
+            height: 32px;
+            width: auto;
+        }
+
+        .footer-description {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(249, 115, 22, 0.1);
+            border-radius: 50%;
+            color: var(--primary);
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .social-links a:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-4px);
+        }
+
+        .footer-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 2rem 0;
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .footer-bottom p {
+            margin: 0;
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-legal a {
+            color: #94a3b8;
+        }
+
+        .footer-legal a:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .footer-legal {
+                justify-content: center;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-text p {
+                font-size: 1rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            nav ul {
+                display: none;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .cta-section {
+                padding: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+            }
+
+            .form-status {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .modal-content {
+                width: 95%;
+                max-height: 95vh;
+            }
+
+            .carousel-slide {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .chat-widget {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                position: fixed;
+                bottom: 0;
+                right: 0;
+            }
+
+            .testimonials-wrapper {
+                gap: 1rem;
+            }
+
+            .download-buttons {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/assets/images/logo.png" alt="GTW">
+                <span class="logo-text">GTW</span>
+            </div>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how">How It Works</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#reviews">Reviews</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>The Smart Way to <span>Deliver</span></h1>
+                <p>Send parcels with trusted travelers. Real-time tracking, secure payments, and verified connections.</p>
+                <div class="hero-buttons">
+                    <a href="/app" class="btn primary">🚀 Launch Web App</a>
+                    <a href="#features" class="btn secondary">Explore Features</a>
+                    <button id="openDemo" class="btn secondary">▶️ Try Demo</button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <img src="/assets/images/mockup1.svg" alt="App mockup 1" style="max-width:260px;width:100%;height:auto;border-radius:12px;" />
+                    </div>
+                    <div style="position:absolute;left:20%;top:10%;transform:translateX(-50%);width:120px;">
+                        <img src="/assets/images/mockup2.svg" alt="App mockup 2" style="width:120px;height:auto;border-radius:12px;box-shadow:0 12px 30px rgba(15,23,42,0.08)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Notifications Container -->
+    <div id="notificationsContainer"></div>
+
+    <!-- Demo Modal (app simulation) -->
+    <div id="demoBackdrop" class="demo-modal-backdrop" aria-hidden="true">
+        <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+            <div class="demo-left">
+                <h3 id="demoTitle">Simulated Tracking</h3>
+                <p>See how deliveries move in real-time. This is a demo using mocked data to show how the app tracks parcels and estimates arrival.</p>
+                <div class="map-mock" id="mapMock">
+                    <svg class="map-path" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path id="demoRoute" d="M5 80 C25 60, 40 30, 95 20" stroke="#E5E7EB" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div id="mapMarker" class="map-marker" style="left:5%; top:80%;"></div>
+                </div>
+                <div class="demo-actions">
+                    <button id="startDemo" class="btn primary">Start</button>
+                    <button id="resetDemo" class="btn secondary">Reset</button>
+                    <button id="closeDemo" class="btn secondary">Close</button>
+                </div>
+            </div>
+            <div class="demo-right">
+                <h4>Delivery Details</h4>
+                <p><strong>Parcel:</strong> Small box</p>
+                <p><strong>Driver:</strong> Alex</p>
+                <p><strong>ETA:</strong> <span id="demoEta">12 mins</span></p>
+                <p><strong>Status:</strong> <span id="demoStatus">Pending</span></p>
+                <div style="height:12px"></div>
+                <div style="font-size:0.9rem;color:var(--gray-700)">You can also track using the web app—this demo mirrors that experience.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <section class="stats">
+        <div class="section-header">
+            <h2>Growing Fast</h2>
+            <p>Join thousands of satisfied users</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" data-target="50000">0</div>
+                <div class="stat-label">Deliveries Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="10000">0</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="9980">0</div>
+                <div class="stat-label">Uptime %</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="24">0</div>
+                <div class="stat-label">/7 Support</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Carousel -->
+    <section class="features-carousel-container">
+        <div style="max-width: 1400px; margin: 0 auto; padding: 6rem 2rem;">
+            <div class="section-header">
+                <h2>App Features Showcase</h2>
+                <p>Explore the powerful capabilities of The GTW</p>
+            </div>
+            <div class="carousel">
+                <div class="carousel-wrapper" id="carouselWrapper">
+                    <div class="carousel-slide">
+                        <div class="carousel-content">
+                            <h3>Real-Time GPS Tracking</h3>
+                            <p>Monitor deliveries with pinpoint accuracy. Get live updates every few seconds with our advanced GPS technology.</p>
+                            <a href="#" class="btn primary">Learn More</a>
+                        </div>
+                        <div>📍</div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="carousel-content">
+                            <h3>Smart Notifications</h3>
+                            <p>Never miss an update. Get push notifications for every milestone in the delivery journey.</p>
+                            <a href="#" class="btn primary">Learn More</a>
+                        </div>
+                        <div style="font-size: 4rem;">🔔</div>
+                    </div>
+                    <div class="carousel-slide">
+                        <div class="carousel-content">
+                            <h3>Optimized Routes</h3>
+                            <p>AI-powered routing saves time and fuel. Deliver more in less time with intelligent planning.</p>
+                            <a href="#" class="btn primary">Learn More</a>
+                        </div>
+                        <div style="font-size: 4rem;">🛣️</div>
+                    </div>
+                </div>
+                <div class="carousel-nav" id="carouselNav"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Details Modal -->
+    <div id="featureModal" class="feature-modal-backdrop" aria-hidden="true">
+        <div class="feature-modal" role="dialog" aria-modal="true">
+            <button class="modal-close" id="closeFeatureModal" aria-label="Close modal">&times;</button>
+            <div class="feature-modal-icon" id="modalIcon"></div>
+            <h2 id="modalTitle"></h2>
+            <div id="modalContent"></div>
+            <div class="modal-features-list" id="modalFeatures"></div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how">
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Get started in 4 simple steps</p>
+            </div>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>📲 Download</h4>
+                    <p>Get the app from your device's app store</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>👤 Register</h4>
+                    <p>Create your account in less than 2 minutes</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>📦 Place Order</h4>
+                    <p>Submit your delivery request with all details</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>✅ Track & Deliver</h4>
+                    <p>Track in real-time and complete delivery</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <div class="section-header">
+                <h2>Enterprise-Grade Features</h2>
+                <p>Built for modern logistics. Trusted by carriers, senders, and receivers across Africa.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-feature="tracking">
+                    <div class="feature-icon"><i data-feather="map-pin"></i></div>
+                    <h3>Live GPS Tracking</h3>
+                    <p>Real-time location tracking with pinpoint accuracy. Share delivery progress with customers and reduce support queries by 60%. Works offline with location caching.</p>
+                </div>
+                <div class="feature-card" data-feature="notifications">
+                    <div class="feature-icon"><i data-feather="bell"></i></div>
+                    <h3>Smart Notifications</h3>
+                    <p>Intelligent alerts at critical moments—pickup confirmed, in transit, arriving soon, delivered. Push, SMS, and email. Customize per customer segment. Reduce inquiries instantly.</p>
+                </div>
+                <div class="feature-card" data-feature="routing">
+                    <div class="feature-icon"><i data-feather="navigation"></i></div>
+                    <h3>Optimized Routes</h3>
+                    <p>AI-powered route optimization reduces delivery time by 25% and fuel costs by 30%. Multi-stop planning, traffic awareness, and dynamic rerouting for real-world conditions.</p>
+                </div>
+                <div class="feature-card" data-feature="messaging">
+                    <div class="feature-icon"><i data-feather="message-circle"></i></div>
+                    <h3>In-App Messaging</h3>
+                    <p>Direct driver-customer communication without phone number exposure. Shared delivery instructions, photo updates, and instant problem resolution. Two-way chat with media support.</p>
+                </div>
+                <div class="feature-card" data-feature="pod">
+                    <div class="feature-icon"><i data-feather="camera"></i></div>
+                    <h3>Proof of Delivery</h3>
+                    <p>Timestamped photos, digital signatures, and condition reports. Legal proof for disputes. Weather-resistant image compression. Automatic compliance with delivery SLAs.</p>
+                </div>
+                <div class="feature-card" data-feature="payments">
+                    <div class="feature-icon"><i data-feather="credit-card"></i></div>
+                    <h3>Secure Payments</h3>
+                    <p>Paystack, Stripe, and mobile money integration. PCI-DSS Level 1 compliant. Instant settlement. Escrow hold for buyer protection. Accept partial payments and COD seamlessly.</p>
+                </div>
+                <div class="feature-card" data-feature="analytics">
+                    <div class="feature-icon"><i data-feather="bar-chart-2"></i></div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Deep insights into delivery performance, driver ratings, customer satisfaction, and revenue trends. Predictive analytics for demand forecasting. Export reports in seconds.</p>
+                </div>
+                <div class="feature-card" data-feature="team">
+                    <div class="feature-icon"><i data-feather="users"></i></div>
+                    <h3>Team Management</h3>
+                    <p>Manage unlimited drivers and subcontractors. Performance scoring, attendance tracking, and incentive management. Assign deliveries, track KPIs, and pay from app.</p>
+                </div>
+                <div class="feature-card" data-feature="security">
+                    <div class="feature-icon"><i data-feather="shield"></i></div>
+                    <h3>Enterprise Security</h3>
+                    <p>End-to-end encryption, biometric authentication, and role-based access control. GDPR & SOC 2 compliant. Audit logs for every transaction. Data residency options.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Plans -->
+    <section class="pricing" id="pricing">
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <div class="section-header">
+                <h2>Simple Pricing</h2>
+                <p>Choose the perfect plan for your needs</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3 class="pricing-name">Starter</h3>
+                    <div class="pricing-price">Free</div>
+                    <p class="pricing-period">forever</p>
+                    <ul class="pricing-features">
+                        <li>Up to 50 deliveries/month</li>
+                        <li>Basic GPS tracking</li>
+                        <li>Mobile app access</li>
+                        <li>Basic notifications</li>
+                        <li>Simple delivery reports</li>
+                        <li>Email support</li>
+                        <li>Community support access</li>
+                        <li>Standard uptime SLA (99%)</li>
+                    </ul>
+                    <a href="#" class="btn secondary">Get Started</a>
+                </div>
+                <div class="pricing-card featured">
+                    <h3 class="pricing-name">Professional</h3>
+                    <div class="pricing-price">R499</div>
+                    <p class="pricing-period">per month</p>
+                    <ul class="pricing-features">
+                        <li>Unlimited deliveries</li>
+                        <li>Real-time GPS tracking</li>
+                        <li>Advanced analytics dashboard</li>
+                        <li>Proof of delivery photos</li>
+                        <li>Multiple user roles</li>
+                        <li>Team management (up to 10 users)</li>
+                        <li>Custom branding options</li>
+                        <li>In-app messaging system</li>
+                        <li>Delivery history & reporting</li>
+                        <li>Performance insights</li>
+                        <li>Priority email & chat support</li>
+                        <li>Mobile app (iOS & Android)</li>
+                        <li>99.5% uptime SLA</li>
+                    </ul>
+                    <a href="#" class="btn primary">Start Free Trial</a>
+                </div>
+                <div class="pricing-card">
+                    <h3 class="pricing-name">Enterprise</h3>
+                    <div class="pricing-price">Custom</div>
+                    <p class="pricing-period">for your scale</p>
+                    <ul class="pricing-features">
+                        <li>Everything in Professional</li>
+                        <li>Unlimited user accounts</li>
+                        <li>Custom integrations</li>
+                        <li>Full API access</li>
+                        <li>Dedicated account manager</li>
+                        <li>Custom domain & branding</li>
+                        <li>Advanced security features</li>
+                        <li>White-label solutions</li>
+                        <li>Custom workflows & automation</li>
+                        <li>Priority phone support (24/7)</li>
+                        <li>Training & onboarding support</li>
+                        <li>Quarterly business reviews</li>
+                        <li>99.99% uptime SLA guarantee</li>
+                        <li>Advanced compliance & reporting</li>
+                        <li>Dedicated infrastructure option</li>
+                    </ul>
+                    <a href="#" class="btn secondary">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials" id="reviews">
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <div class="section-header">
+                <h2>What Users Love</h2>
+                <p>Join thousands of satisfied delivery professionals</p>
+            </div>
+            <div class="testimonials-carousel">
+                <div class="testimonials-wrapper" id="testimonialsWrapper">
+                    <div class="testimonial">
+                        <div class="stars">★★★★★</div>
+                        <p class="testimonial-text">"The GTW has completely transformed how I manage my delivery business. The real-time tracking is a game-changer!"</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">JM</div>
+                            <div>
+                                <div class="author-name">James M.</div>
+                                <div class="author-role">Logistics Manager</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="stars">★★★★★</div>
+                        <p class="testimonial-text">"Our delivery times dropped by 30% thanks to the optimized routing. Highly recommended!"</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">SA</div>
+                            <div>
+                                <div class="author-name">Sarah A.</div>
+                                <div class="author-role">Fleet Owner</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="stars">★★★★★</div>
+                        <p class="testimonial-text">"Customer satisfaction is through the roof. The communication features are excellent."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">MC</div>
+                            <div>
+                                <div class="author-name">Mike C.</div>
+                                <div class="author-role">Operations Head</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Download Section -->
+    <section class="app-download">
+        <div style="max-width: 1400px; margin: 0 auto; padding: 6rem 2rem;">
+            <h2 style="font-family: 'Poppins', sans-serif; font-size: 2.5rem; margin-bottom: 1rem;">Download The GTW Today</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">Get the app on your device and start managing deliveries like a pro</p>
+            <div class="download-buttons">
+                <a href="#" class="download-btn">
+                    <div class="download-icon">🍎</div>
+                    <div>
+                        <div style="font-size: 0.8rem; opacity: 0.9;">Download on</div>
+                        <div style="font-size: 1rem; font-weight: 700;">App Store</div>
+                    </div>
+                </a>
+                <a href="#" class="download-btn">
+                    <div class="download-icon">🤖</div>
+                    <div>
+                        <div style="font-size: 0.8rem; opacity: 0.9;">Get it on</div>
+                        <div style="font-size: 1rem; font-weight: 700;">Google Play</div>
+                    </div>
+                </a>
+            </div>
+            <div class="service-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <div class="status-text">
+                    <h4>All Systems Operational</h4>
+                    <p id="statusText">Backend: Online • Database: Connected • All services running smoothly</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section style="background: white;">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <div class="section-header">
+                <h2>Frequently Asked Questions</h2>
+                <p>Find answers to common questions</p>
+            </div>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-header">
+                        <h3>How do I get started?</h3>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-content">
+                        <p>Download the app from your device's app store, create an account, and you're ready to start managing deliveries within minutes.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-header">
+                        <h3>Is my data secure?</h3>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-content">
+                        <p>Yes! We use military-grade encryption (AES-256) for all data. All transactions are PCI-DSS compliant, and we're fully GDPR compliant.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-header">
+                        <h3>What are the pricing plans?</h3>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-content">
+                        <p>We offer a free tier for small businesses, and premium plans starting at $29/month with unlimited deliveries and advanced analytics.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-header">
+                        <h3>Can I integrate with my existing system?</h3>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-content">
+                        <p>Absolutely! We provide REST APIs and webhooks for integration with your existing business systems.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-header">
+                        <h3>What payment methods do you support?</h3>
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-content">
+                        <p>We support credit/debit cards, mobile money, bank transfers, and digital wallets. All payments are processed securely.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section style="background: var(--gray-50);">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <div class="section-header">
+                <h2>Get In Touch</h2>
+                <p>Have a question? We're here to help!</p>
+            </div>
+            <form id="contactForm" class="contact-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required>
+                        <span class="error-message"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required>
+                        <span class="error-message"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone">
+                        <span class="error-message"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <select id="subject" name="subject" required>
+                            <option value="">Select a subject...</option>
+                            <option value="general">General Enquiry</option>
+                            <option value="support">Support Request</option>
+                            <option value="partnership">Partnership</option>
+                            <option value="feature">Feature Request</option>
+                        </select>
+                        <span class="error-message"></span>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="message">Message *</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">
+                        <span class="btn-text">Send Message</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+                    <div class="form-status"></div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Complaints Section -->
+    <section style="background: white;">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <div class="section-header">
+                <h2>Report an Issue</h2>
+                <p>Help us improve by reporting problems or complaints</p>
+            </div>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <button id="openComplaintBtn" class="btn primary" style="margin: 0 auto; display: inline-flex;">
+                    📋 Report Complaint
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Complaint Modal -->
+    <div id="complaintModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Report a Complaint</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="complaintForm" class="complaint-form">
+                <div class="form-group">
+                    <label for="complaint-name">Full Name *</label>
+                    <input type="text" id="complaint-name" name="name" required>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="complaint-email">Email Address *</label>
+                    <input type="email" id="complaint-email" name="email" required>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="complaint-type">Complaint Type *</label>
+                    <select id="complaint-type" name="type" required>
+                        <option value="">Select complaint type...</option>
+                        <option value="delivery">Delivery Issue</option>
+                        <option value="payment">Payment Problem</option>
+                        <option value="customer-service">Customer Service</option>
+                        <option value="technical">Technical Issue</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="complaint-description">Describe the Issue *</label>
+                    <textarea id="complaint-description" name="description" rows="4" required></textarea>
+                    <span class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="complaint-reference">Reference/Order ID (if applicable)</label>
+                    <input type="text" id="complaint-reference" name="reference_id">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">
+                        <span class="btn-text">Submit Complaint</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+                    <button type="button" class="btn secondary" id="closeComplaintBtn">Cancel</button>
+                    <div class="form-status"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <section style="max-width: 1000px;">
+        <div class="cta-section">
+            <h2>Ready to Transform Your Delivery Business?</h2>
+            <p>Join the delivery revolution. Start free, upgrade anytime.</p>
+            <a href="#" class="btn primary">Get Started Now</a>
+        </div>
+    </section>
+
+    <!-- Chat Widget -->
+    <div class="chat-toggle" id="chatToggle">💬</div>
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <h3>Support Chat</h3>
+            <button class="chat-close" id="chatWidgetClose">✕</button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type your message...">
+            <button id="chatSend">Send</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="/assets/images/logo.png" alt="GTW Logo">
+                        <span>The GTW</span>
+                    </div>
+                    <p class="footer-description">Smart delivery platform making logistics efficient, transparent, and reliable for businesses and customers worldwide.</p>
+                    <div class="social-links">
+                        <a href="https://github.com/hlulanigoi/the-gtw" target="_blank" title="GitHub" aria-label="GitHub"><i data-feather="github"></i></a>
+                        <a href="#" title="Twitter" aria-label="Twitter"><i data-feather="twitter"></i></a>
+                        <a href="#" title="LinkedIn" aria-label="LinkedIn"><i data-feather="linkedin"></i></a>
+                        <a href="#" title="Facebook" aria-label="Facebook"><i data-feather="facebook"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#how">How It Works</a></li>
+                        <li><a href="#" onclick="alert('Coming soon'); return false;">Download App</a></li>
+                        <li><a href="#" onclick="alert('Coming soon'); return false;">API Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press Kit</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Status Page</a></li>
+                        <li><a href="#">Security</a></li>
+                        <li><a href="#">Report Issue</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 The GTW - Go The Way. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            themeToggle.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+        });
+
+        // Animated Statistics Counter
+        function animateCounters() {
+            const counters = document.querySelectorAll('[data-target]');
+            counters.forEach(counter => {
+                const target = parseInt(counter.dataset.target);
+                const duration = 2000;
+                const start = Date.now();
+                
+                function updateCount() {
+                    const now = Date.now();
+                    const progress = (now - start) / duration;
+                    
+                    if (progress < 1) {
+                        counter.textContent = Math.floor(target * progress);
+                        requestAnimationFrame(updateCount);
+                    } else {
+                        counter.textContent = target;
+                    }
+                }
+                updateCount();
+            });
+        }
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.querySelector('[data-target]')) {
+                        animateCounters();
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.stats').forEach(el => observer.observe(el));
+
+        // Feature Carousel
+        const carouselWrapper = document.getElementById('carouselWrapper');
+        const carouselNav = document.getElementById('carouselNav');
+        const slides = carouselWrapper.querySelectorAll('.carousel-slide');
+        let currentSlide = 0;
+
+        function createCarouselDots() {
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goToSlide(index));
+                carouselNav.appendChild(dot);
+            });
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            carouselWrapper.style.transform = `translateX(-${index * 100}%)`;
+            document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        function nextSlide() {
+            goToSlide((currentSlide + 1) % slides.length);
+        }
+
+        createCarouselDots();
+        setInterval(nextSlide, 5000);
+
+        // Testimonials Auto-Carousel
+        const testimonialsWrapper = document.getElementById('testimonialsWrapper');
+        const testimonials = testimonialsWrapper.querySelectorAll('.testimonial');
+        let currentTestimonial = 0;
+
+        function rotateTestimonials() {
+            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+            testimonialsWrapper.style.transform = `translateX(-${currentTestimonial * 100}%)`;
+        }
+
+        setInterval(rotateTestimonials, 6000);
+
+        // Live Notifications
+        const notifications = [
+            { icon: '✅', title: 'Delivery Completed', text: 'Order delivered successfully in 45 minutes' },
+            { icon: '🎉', title: 'New User Alert', text: '500th user just signed up!' },
+            { icon: '📈', title: 'Milestone Reached', text: 'We hit 50K deliveries!' },
+            { icon: '⭐', title: '5-Star Rating', text: 'New positive review from a customer' },
+            { icon: '🚀', title: 'Driver Available', text: 'New driver joined the network' }
+        ];
+
+        function showNotification() {
+            const notif = notifications[Math.floor(Math.random() * notifications.length)];
+            const container = document.getElementById('notificationsContainer');
+            
+            const element = document.createElement('div');
+            element.className = 'notification success';
+            element.innerHTML = `
+                <div class="notification-icon">${notif.icon}</div>
+                <div class="notification-content">
+                    <h4>${notif.title}</h4>
+                    <p>${notif.text}</p>
+                </div>
+            `;
+            
+            container.appendChild(element);
+            
+            setTimeout(() => {
+                element.style.animation = 'slideInRight 0.5s ease reverse';
+                setTimeout(() => element.remove(), 500);
+            }, 4000);
+        }
+
+        setInterval(showNotification, 8000);
+
+        // FAQ Accordion
+        document.querySelectorAll('.faq-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const faqItem = this.parentElement;
+                faqItem.classList.toggle('active');
+            });
+        });
+
+        // Form Validation
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validatePhone(phone) {
+            return phone === '' || /^[0-9+\-\s()]{7,}$/.test(phone);
+        }
+
+        function showError(input, message) {
+            input.classList.add('error');
+            const errorSpan = input.parentElement.querySelector('.error-message');
+            if (errorSpan) {
+                errorSpan.textContent = message;
+                errorSpan.classList.add('show');
+            }
+        }
+
+        function clearError(input) {
+            input.classList.remove('error');
+            const errorSpan = input.parentElement.querySelector('.error-message');
+            if (errorSpan) {
+                errorSpan.textContent = '';
+                errorSpan.classList.remove('show');
+            }
+        }
+
+        // Contact Form
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                let isValid = true;
+
+                const name = this.querySelector('#name');
+                const email = this.querySelector('#email');
+                const phone = this.querySelector('#phone');
+                const subject = this.querySelector('#subject');
+                const message = this.querySelector('#message');
+
+                if (!name.value.trim()) {
+                    showError(name, 'Name is required');
+                    isValid = false;
+                } else {
+                    clearError(name);
+                }
+
+                if (!email.value.trim()) {
+                    showError(email, 'Email is required');
+                    isValid = false;
+                } else if (!validateEmail(email.value)) {
+                    showError(email, 'Invalid email address');
+                    isValid = false;
+                } else {
+                    clearError(email);
+                }
+
+                if (!validatePhone(phone.value)) {
+                    showError(phone, 'Invalid phone number');
+                    isValid = false;
+                } else {
+                    clearError(phone);
+                }
+
+                if (!subject.value) {
+                    showError(subject, 'Subject is required');
+                    isValid = false;
+                } else {
+                    clearError(subject);
+                }
+
+                if (!message.value.trim()) {
+                    showError(message, 'Message is required');
+                    isValid = false;
+                } else {
+                    clearError(message);
+                }
+
+                if (!isValid) return;
+
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const btnText = submitBtn.querySelector('.btn-text');
+                const btnLoader = submitBtn.querySelector('.btn-loader');
+                const formStatus = this.querySelector('.form-status');
+
+                submitBtn.disabled = true;
+                btnText.style.display = 'none';
+                btnLoader.style.display = 'inline';
+                formStatus.className = 'form-status loading';
+                formStatus.textContent = 'Sending message...';
+
+                try {
+                    const response = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name.value,
+                            email: email.value,
+                            phone: phone.value,
+                            subject: subject.value,
+                            message: message.value
+                        })
+                    });
+
+                    if (response.ok) {
+                        formStatus.className = 'form-status success';
+                        formStatus.textContent = '✓ Message sent successfully!';
+                        this.reset();
+                    } else {
+                        formStatus.className = 'form-status error';
+                        formStatus.textContent = '✗ Failed to send message.';
+                    }
+                } catch (error) {
+                    formStatus.className = 'form-status error';
+                    formStatus.textContent = '✗ Error sending message.';
+                }
+
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            });
+        }
+
+        // Complaint Modal
+        const complaintModal = document.getElementById('complaintModal');
+        const openComplaintBtn = document.getElementById('openComplaintBtn');
+        const closeComplaintBtn = document.getElementById('closeComplaintBtn');
+        const modalClose = document.querySelector('.modal-close');
+
+        if (openComplaintBtn) {
+            openComplaintBtn.addEventListener('click', () => {
+                complaintModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        }
+
+        function closeModal() {
+            complaintModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.getElementById('complaintForm').reset();
+        }
+
+        if (closeComplaintBtn) {
+            closeComplaintBtn.addEventListener('click', closeModal);
+        }
+
+        if (modalClose) {
+            modalClose.addEventListener('click', closeModal);
+        }
+
+        complaintModal.addEventListener('click', (e) => {
+            if (e.target === complaintModal) closeModal();
+        });
+
+        // Complaint Form
+        const complaintForm = document.getElementById('complaintForm');
+        if (complaintForm) {
+            complaintForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                let isValid = true;
+
+                const name = this.querySelector('#complaint-name');
+                const email = this.querySelector('#complaint-email');
+                const type = this.querySelector('#complaint-type');
+                const description = this.querySelector('#complaint-description');
+
+                if (!name.value.trim()) {
+                    showError(name, 'Name is required');
+                    isValid = false;
+                } else {
+                    clearError(name);
+                }
+
+                if (!email.value.trim()) {
+                    showError(email, 'Email is required');
+                    isValid = false;
+                } else if (!validateEmail(email.value)) {
+                    showError(email, 'Invalid email address');
+                    isValid = false;
+                } else {
+                    clearError(email);
+                }
+
+                if (!type.value) {
+                    showError(type, 'Complaint type is required');
+                    isValid = false;
+                } else {
+                    clearError(type);
+                }
+
+                if (!description.value.trim()) {
+                    showError(description, 'Description is required');
+                    isValid = false;
+                } else {
+                    clearError(description);
+                }
+
+                if (!isValid) return;
+
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const btnText = submitBtn.querySelector('.btn-text');
+                const btnLoader = submitBtn.querySelector('.btn-loader');
+                const formStatus = this.querySelector('.form-status');
+
+                submitBtn.disabled = true;
+                btnText.style.display = 'none';
+                btnLoader.style.display = 'inline';
+                formStatus.className = 'form-status loading';
+                formStatus.textContent = 'Submitting complaint...';
+
+                try {
+                    const response = await fetch('/api/complaints', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name.value,
+                            email: email.value,
+                            type: type.value,
+                            description: description.value,
+                            reference_id: this.querySelector('#complaint-reference').value
+                        })
+                    });
+
+                    if (response.ok) {
+                        formStatus.className = 'form-status success';
+                        formStatus.textContent = '✓ Complaint submitted successfully!';
+                        setTimeout(() => closeModal(), 2000);
+                    } else {
+                        formStatus.className = 'form-status error';
+                        formStatus.textContent = '✗ Failed to submit complaint.';
+                    }
+                } catch (error) {
+                    formStatus.className = 'form-status error';
+                    formStatus.textContent = '✗ Error submitting complaint.';
+                }
+
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            });
+        }
+
+        // Chat Widget
+        const chatToggle = document.getElementById('chatToggle');
+        const chatWidget = document.getElementById('chatWidget');
+        const chatWidgetClose = document.getElementById('chatWidgetClose');
+        const chatInput = document.getElementById('chatInput');
+        const chatSend = document.getElementById('chatSend');
+        const chatMessages = document.getElementById('chatMessages');
+
+        chatToggle.addEventListener('click', () => {
+            chatWidget.classList.add('active');
+            chatToggle.classList.add('hidden');
+            chatInput.focus();
+        });
+
+        chatWidgetClose.addEventListener('click', () => {
+            chatWidget.classList.remove('active');
+            chatToggle.classList.remove('hidden');
+        });
+
+        function addMessage(text, isAgent = false) {
+            const message = document.createElement('div');
+            message.className = `chat-message ${isAgent ? 'agent' : 'user'}`;
+            message.textContent = text;
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatSend.addEventListener('click', () => {
+            if (chatInput.value.trim()) {
+                addMessage(chatInput.value, false);
+                const userMsg = chatInput.value;
+                chatInput.value = '';
+
+                setTimeout(() => {
+                    const responses = [
+                        'Thanks for reaching out! How can we help?',
+                        'We appreciate your question. Let me find the answer for you.',
+                        'That's a great question! Our support team will get back to you shortly.',
+                        'I'm here to help. What specific issue are you facing?'
+                    ];
+                    addMessage(responses[Math.floor(Math.random() * responses.length)], true);
+                }, 500);
+            }
+        });
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') chatSend.click();
+        });
+
+        // Demo modal behavior and simple tracking simulation
+        (function(){
+            const backdrop = document.getElementById('demoBackdrop');
+            const openBtn = document.getElementById('openDemo');
+            const closeBtn = document.getElementById('closeDemo');
+            const startBtn = document.getElementById('startDemo');
+            const resetBtn = document.getElementById('resetDemo');
+            const marker = document.getElementById('mapMarker');
+            const etaEl = document.getElementById('demoEta');
+            const statusEl = document.getElementById('demoStatus');
+            let progress = 0;
+            let timer = null;
+
+            function showDemo(){ if (backdrop) { backdrop.style.display='flex'; backdrop.setAttribute('aria-hidden','false'); } }
+            function hideDemo(){ if (backdrop) { backdrop.style.display='none'; backdrop.setAttribute('aria-hidden','true'); } stopDemo(); }
+
+            function renderMarker(p){
+                const left = 5 + p*90;
+                const top = 80 - p*60;
+                if(marker){ marker.style.left = left+'%'; marker.style.top = top+'%'; }
+            }
+
+            function startDemo(){
+                if(timer) return;
+                if(statusEl) statusEl.textContent='In Transit';
+                timer = setInterval(()=>{
+                    progress += 0.02;
+                    if(progress>1) progress=1;
+                    renderMarker(progress);
+                    const mins = Math.max(1, Math.ceil((1-progress)*12));
+                    if(etaEl) etaEl.textContent = mins + ' mins';
+                    if(progress>=1){ if(statusEl) statusEl.textContent='Delivered'; stopDemo(); }
+                }, 300);
+            }
+
+            function stopDemo(){ if(timer){ clearInterval(timer); timer=null; } }
+
+            function resetDemo(){ stopDemo(); progress=0; renderMarker(0); if(etaEl) etaEl.textContent='12 mins'; if(statusEl) statusEl.textContent='Pending'; }
+
+            openBtn && openBtn.addEventListener('click', showDemo);
+            closeBtn && closeBtn.addEventListener('click', hideDemo);
+            startBtn && startBtn.addEventListener('click', startDemo);
+            resetBtn && resetBtn.addEventListener('click', resetDemo);
+            backdrop && backdrop.addEventListener('click',(e)=>{ if(e.target===backdrop) hideDemo(); });
+            if(window.location.hash==='#demo') showDemo();
+        })();
+
+        // Service Status Check
+        async function checkServiceStatus() {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    indicator.style.background = '#10b981';
+                    statusText.textContent = 'Backend: Online • Database: Connected • All services running smoothly';
+                } else {
+                    indicator.style.background = '#ef4444';
+                    statusText.textContent = 'Some services may be offline. Please refresh.';
+                }
+            } catch (error) {
+                indicator.style.background = '#ef4444';
+                statusText.textContent = 'Unable to reach backend. Please check your connection.';
+            }
+        }
+
+        checkServiceStatus();
+        setInterval(checkServiceStatus, 30000);
+
+        // Feature Details Modal
+        const featureModal = document.getElementById('featureModal');
+        const closeFeatureModalBtn = document.getElementById('closeFeatureModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalContent = document.getElementById('modalContent');
+        const modalFeatures = document.getElementById('modalFeatures');
+
+        const featureDetails = {
+            tracking: {
+                icon: '<i data-feather="map-pin"></i>',
+                title: 'Live GPS Tracking',
+                description: 'Real-time location tracking with pinpoint accuracy. Share delivery progress with customers instantly and reduce support queries by 60%. Advanced location caching ensures offline functionality.',
+                features: [
+                    'Real-time GPS location updates every 10 seconds',
+                    'Offline location caching with auto-sync',
+                    'Customer location sharing via secure link',
+                    'Geofence alerts and delivery confirmations',
+                    'Historical route tracking and analytics'
+                ]
+            },
+            notifications: {
+                icon: '<i data-feather="bell"></i>',
+                title: 'Smart Notifications',
+                description: 'Intelligent notification system that keeps customers informed at every step. Reduce support calls by 60% with timely, contextual updates. Multi-channel delivery via SMS, push, and email.',
+                features: [
+                    'Automated pickup and delivery notifications',
+                    'Smart push notifications and SMS alerts',
+                    'Email confirmation with tracking link',
+                    'Customizable notification preferences',
+                    'Delivery status timeline for customers'
+                ]
+            },
+            routing: {
+                icon: '<i data-feather="navigation"></i>',
+                title: 'Optimized Routes',
+                description: 'AI-powered route optimization that saves 25% delivery time and fuel costs. Intelligent algorithm considers traffic, delivery priority, and vehicle capacity. Real-time route adjustments based on conditions.',
+                features: [
+                    'Multi-stop route optimization algorithm',
+                    '25% average time savings per route',
+                    'Real-time traffic-aware adjustments',
+                    'Vehicle capacity and priority constraints',
+                    'One-click route history and replay'
+                ]
+            },
+            messaging: {
+                icon: '<i data-feather="message-circle"></i>',
+                title: 'In-App Messaging',
+                description: 'Direct communication channel between delivery personnel and customers. Secure, encrypted messaging with image and file support. Reduce response time and build customer trust with real-time chat.',
+                features: [
+                    'Real-time two-way messaging system',
+                    'Image and file attachment support',
+                    'Message history and search capability',
+                    'Delivery notes and customer requests',
+                    'Read receipts and typing indicators'
+                ]
+            },
+            pod: {
+                icon: '<i data-feather="camera"></i>',
+                title: 'Proof of Delivery',
+                description: 'Comprehensive proof of delivery system with photo capture, signature, and recipient details. Reduce disputes by 95% with irrefutable delivery evidence. Compliant with e-commerce and logistics regulations.',
+                features: [
+                    'Photo capture with GPS geotag',
+                    'Digital signature collection',
+                    'Customer name and contact verification',
+                    'Delivery time and condition notes',
+                    'Instant POD generation and sharing'
+                ]
+            },
+            payments: {
+                icon: '<i data-feather="credit-card"></i>',
+                title: 'Secure Payments',
+                description: 'Integrated payment processing for COD and prepaid deliveries. PCI-DSS compliant with industry-leading security. Support multiple payment methods including cards, wallets, and bank transfers.',
+                features: [
+                    'PCI-DSS Level 1 compliance',
+                    'Multiple payment method support',
+                    'Real-time payment verification',
+                    'Automatic reconciliation and reporting',
+                    'Fraud detection and prevention'
+                ]
+            },
+            analytics: {
+                icon: '<i data-feather="bar-chart-2"></i>',
+                title: 'Analytics Dashboard',
+                description: 'Comprehensive business intelligence dashboard with real-time metrics and insights. Track performance KPIs, identify bottlenecks, and optimize operations. Export reports in multiple formats for analysis.',
+                features: [
+                    'Real-time delivery metrics and KPIs',
+                    'Driver performance and efficiency tracking',
+                    'Customer satisfaction and NPS analytics',
+                    'Revenue and cost analysis by route/period',
+                    'Custom report generation and scheduling'
+                ]
+            },
+            team: {
+                icon: '<i data-feather="users"></i>',
+                title: 'Team Management',
+                description: 'Comprehensive team management with role-based access control. Assign deliveries, track performance, and manage driver documents. Streamline operations with automated scheduling and task allocation.',
+                features: [
+                    'User roles and permission management',
+                    'Automated delivery assignment system',
+                    'Driver document and credential tracking',
+                    'Performance ratings and reviews',
+                    'Team communication and announcements'
+                ]
+            },
+            security: {
+                icon: '<i data-feather="shield"></i>',
+                title: 'Enterprise Security',
+                description: 'Bank-grade security with end-to-end encryption and compliance certifications. Protect customer data with advanced threat detection. Multi-layer security architecture with continuous monitoring.',
+                features: [
+                    'End-to-end encryption for all data',
+                    'Regular security audits and penetration testing',
+                    'Two-factor authentication support',
+                    'GDPR and data privacy compliance',
+                    '99.9% uptime SLA with disaster recovery'
+                ]
+            }
+        };
+
+        function openFeatureModal(featureName) {
+            const details = featureDetails[featureName];
+            if (!details) return;
+
+            modalIcon.innerHTML = details.icon;
+            modalTitle.textContent = details.title;
+            modalContent.textContent = details.description;
+
+            const featuresList = details.features.map(f => `<li>${f}</li>`).join('');
+            modalFeatures.innerHTML = `<h4>Key Benefits</h4><ul>${featuresList}</ul>`;
+
+            featureModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFeatureModal() {
+            featureModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Add click handlers to all feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const featureName = card.getAttribute('data-feature');
+                openFeatureModal(featureName);
+            });
+            card.style.cursor = 'pointer';
+        });
+
+        closeFeatureModalBtn.addEventListener('click', closeFeatureModal);
+
+        featureModal.addEventListener('click', (e) => {
+            if (e.target === featureModal) closeFeatureModal();
+        });
+
+        // Keyboard escape to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && featureModal.classList.contains('active')) {
+                closeFeatureModal();
+            }
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
+
+        // Initialize Feather icons
+        if (window.feather) {
+            feather.replace();
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" integrity="sha512-FJ4K+EKAiMJmC6+/KnREGKrHk7cC5WfPZVJ65s3t02gXBSR1h0eTmVPEYQZ9iN3GKGXZ3D3fhWDflZMi2PF5Sg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        // Reinitialize Feather icons after DOM updates
+        if (window.feather) {
+            const observer = new MutationObserver(() => {
+                feather.replace();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    </script>
+</body>
+</html>

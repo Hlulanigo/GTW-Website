@@ -1,0 +1,6 @@
+import{c as i,u as c,k as d,j as e,l as h,m}from"./index-YZzCyV-j.js";/**
+ * @license lucide-react v0.462.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const x=i("ChevronLeft",[["path",{d:"m15 18-6-6 6-6",key:"1wnfg3"}]]);function g({title:s,subtitle:a,showBack:t,right:r}){const n=c(),{isDark:l,toggleTheme:o}=d();return e.jsx("header",{className:"sticky top-0 z-40 bg-white/90 dark:bg-navy-mid/90 backdrop-blur-md border-b border-slate-200/60 dark:border-navy-light/60 safe-top",children:e.jsxs("div",{className:"flex items-center h-14 px-4 gap-3",children:[t&&e.jsx("button",{onClick:()=>n(-1),className:"p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-light transition-colors",children:e.jsx(x,{size:22,className:"text-navy dark:text-white"})}),s&&e.jsxs("div",{className:"flex-1 min-w-0",children:[e.jsx("h1",{className:"font-bold text-lg text-navy dark:text-white truncate",children:s}),a&&e.jsx("div",{className:"mt-0.5",children:a})]}),e.jsxs("div",{className:"ml-auto flex items-center gap-2",children:[r,e.jsx("button",{onClick:o,className:"p-2 rounded-full hover:bg-slate-100 dark:hover:bg-navy-light transition-colors md:hidden",children:l?e.jsx(h,{size:18,className:"text-slate-400"}):e.jsx(m,{size:18,className:"text-slate-400"})})]})]})})}export{g as T};

@@ -1,0 +1,25 @@
+# SSH Command to Deploy on VM
+
+# Run this command from your local machine to deploy to the VM:
+
+ssh -i your_private_key ubuntu@129.151.178.153 << 'DEPLOY_CMD'
+cd /home/ubuntu/the-gtw && \
+chmod +x deploy-vm.sh && \
+./deploy-vm.sh
+DEPLOY_CMD
+
+# Or manually run these commands on the VM:
+
+cd /home/ubuntu/the-gtw
+git pull origin main
+npm install --legacy-peer-deps
+npm run build --workspace=frontend
+npm run server:build
+pm2 restart the-gtw-server || pm2 start server_dist/index.js --name "the-gtw-server"
+pm2 save
+sudo chmod +x deploy-vm.sh
+sudo ./deploy-vm.sh
+
+# Then verify deployment:
+pm2 status
+curl https://irgadgetsgtw.shop

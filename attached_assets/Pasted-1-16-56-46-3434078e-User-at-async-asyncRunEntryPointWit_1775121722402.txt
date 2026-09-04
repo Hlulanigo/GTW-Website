@@ -1,0 +1,156 @@
+1:16:56.46
+3434078e
+User
+at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+2026-04-02 11:16:56.46
+3434078e
+User
+at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+2026-04-02 11:16:56.46
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:2956:5
+2026-04-02 11:16:56.46
+3434078e
+User
+Failed to start server: Error: Dynamic require of "http-proxy-middleware" is not supported
+2026-04-02 11:16:56.46
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:5:9
+2026-04-02 11:16:56.46
+3434078e
+User
+at createServerInstance (file:///home/runner/workspace/server_dist/index.js:2935:3)
+2026-04-02 11:16:56.46
+3434078e
+User
+at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+2026-04-02 11:16:56.46
+3434078e
+User
+at configureExpoAndLanding (file:///home/runner/workspace/server_dist/index.js:2894:37)
+2026-04-02 11:16:56.46
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:2943:28
+2026-04-02 11:16:56.50
+3434078e
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+2026-04-02 11:16:56.50
+3434078e
+User
+npm notice
+2026-04-02 11:16:56.50
+3434078e
+User
+npm notice New major version of npm available! 10.9.4 -> 11.12.1
+2026-04-02 11:16:56.72
+3434078e
+User
+> cross-env NODE_ENV=production node server_dist/index.js
+2026-04-02 11:16:58.86
+3434078e
+User
+> cross-env NODE_ENV=production node server_dist/index.js
+2026-04-02 11:16:58.86
+3434078e
+User
+> my-app@1.0.0 server:prod
+2026-04-02 11:16:59.54
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:5:9
+2026-04-02 11:16:59.54
+3434078e
+User
+at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+2026-04-02 11:16:59.54
+3434078e
+User
+at configureExpoAndLanding (file:///home/runner/workspace/server_dist/index.js:2894:37)
+2026-04-02 11:16:59.54
+3434078e
+User
+at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+2026-04-02 11:16:59.54
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:2956:5
+2026-04-02 11:16:59.54
+3434078e
+User
+at createServerInstance (file:///home/runner/workspace/server_dist/index.js:2935:3)
+2026-04-02 11:16:59.54
+3434078e
+User
+Failed to start server: Error: Dynamic require of "http-proxy-middleware" is not supported
+2026-04-02 11:16:59.54
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:2943:28
+2026-04-02 11:16:59.54
+3434078e
+User
+✓ Provider dashboard served at /dashboard
+2026-04-02 11:16:59.54
+3434078e
+User
+at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+2026-04-02 11:16:59.56
+3434078e
+System
+command finished with error [npm run server:prod]: exit status 1
+2026-04-02 11:17:00.22
+3434078e
+User
+> my-app@1.0.0 server:prod
+2026-04-02 11:17:00.22
+3434078e
+User
+> cross-env NODE_ENV=production node server_dist/index.js
+2026-04-02 11:17:00.92
+3434078e
+User
+Firebase service account not provided. Falling back to default auth.
+2026-04-02 11:17:00.92
+3434078e
+User
+✓ Provider dashboard served at /dashboard
+2026-04-02 11:17:00.92
+3434078e
+User
+at configureExpoAndLanding (file:///home/runner/workspace/server_dist/index.js:2894:37)
+2026-04-02 11:17:00.92
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:5:9
+2026-04-02 11:17:00.92
+3434078e
+User
+Failed to start server: Error: Dynamic require of "http-proxy-middleware" is not supported
+2026-04-02 11:17:03.78
+3434078e
+User
+Firebase service account not provided. Falling back to default auth.
+2026-04-02 11:17:03.78
+3434078e
+User
+✓ Provider dashboard served at /dashboard
+2026-04-02 11:17:03.78
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:2956:5
+2026-04-02 11:17:03.78
+3434078e
+User
+at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+2026-04-02 11:17:03.78
+3434078e
+User
+at configureExpoAndLanding (file:///home/runner/workspace/server_dist/index.js:2894:37)
+2026-04-02 11:17:03.78
+3434078e
+User
+at file:///home/runner/workspace/server_dist/index.js:5:9

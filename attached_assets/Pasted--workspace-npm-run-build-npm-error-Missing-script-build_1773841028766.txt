@@ -1,0 +1,64 @@
+~/workspace$ npm run build 
+npm error Missing script: "build"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-03-18T13_36_37_994Z-debug-0.log
+~/workspace$ ls
+admin            client                  docker-compose.yml                 FIREBASE_REMOVAL_COMPLETE.md  node_modules                        QUICK_START_PRODUCTION.md  SSH-DEPLOY-COMMAND.txt
+ADMIN_SETUP.md   COMPATIBILITY_FIXES.md  drizzle.config.ts                  FIREBASE_SETUP.md             output.txt                          README.md                  STAFF_IMPLEMENTATION_COMPLETE.md
+app.json         DEPLOYMENT_GUIDE.md     eas.json                           jest.config.js                package.json                        replit.md                  static
+assets           DEPLOYMENT.md           eslint.config.js                   Logo.png                      package-lock.json                   scripts                    static-build
+attached_assets  DEPLOY_NOW.md           expo.log                           logs                          PAYSTACK_SETUP.md                   server                     SUBSCRIPTION_IMPLEMENTATION.md
+babel.config.js  deploy.sh               FEATURES_IMPLEMENTATION_REPORT.md  MESSAGING_IMPLEMENTATION.md   PRODUCTION_DEPLOYMENT_CHECKLIST.md  server_dist                the-gtw
+backend          deploy-vm.sh            FIREBASE_MIGRATION.md              migrations                    PRODUCTION_READINESS_REPORT.md      server.log                 tsconfig.json
+build-apk.ps1    design_guidelines.md    FIREBASE_QUICK_START.md            model.patch                   QUICK_SETUP_GUIDE.md                shared
+~/workspace$ npm install
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: react-native@0.81.5
+npm error Found: react@18.3.1
+npm error node_modules/react
+npm error   react@"18.3.1" from the root project
+npm error   peerOptional react@"*" from @expo/devtools@0.1.8
+npm error   node_modules/@expo/devtools
+npm error     @expo/devtools@"0.1.8" from expo@54.0.32
+npm error     node_modules/expo
+npm error       expo@"^54.0.23" from the root project
+npm error       25 more (@expo/metro-config, @expo/prebuild-config, ...)
+npm error   34 more (@expo/vector-icons, @react-native-picker/picker, ...)
+npm error
+npm error Could not resolve dependency:
+npm error peer react@"^19.1.0" from react-native@0.81.5
+npm error node_modules/react-native
+npm error   react-native@"0.81.5" from the root project
+npm error   peerOptional react-native@"*" from @expo/devtools@0.1.8
+npm error   node_modules/@expo/devtools
+npm error     @expo/devtools@"0.1.8" from expo@54.0.32
+npm error     node_modules/expo
+npm error       expo@"^54.0.23" from the root project
+npm error       25 more (@expo/metro-config, @expo/prebuild-config, ...)
+npm error   35 more (@expo/vector-icons, ...)
+npm error
+npm error Conflicting peer dependency: react@19.2.4
+npm error node_modules/react
+npm error   peer react@"^19.1.0" from react-native@0.81.5
+npm error   node_modules/react-native
+npm error     react-native@"0.81.5" from the root project
+npm error     peerOptional react-native@"*" from @expo/devtools@0.1.8
+npm error     node_modules/@expo/devtools
+npm error       @expo/devtools@"0.1.8" from expo@54.0.32
+npm error       node_modules/expo
+npm error         expo@"^54.0.23" from the root project
+npm error         25 more (@expo/metro-config, @expo/prebuild-config, ...)
+npm error     35 more (@expo/vector-icons, ...)
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/runner/.npm/_logs/2026-03-18T13_36_51_718Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-03-18T13_36_51_718Z-debug-0.log

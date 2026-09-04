@@ -1,0 +1,10 @@
+t=2026-04-14T10:08:23+0000 lvl=info msg="no configuration paths supplied"
+t=2026-04-14T10:08:23+0000 lvl=warn msg="ngrok config file found at legacy location, move to XDG location" xdg_path=/home/runner/workspace/.config/ngrok/ngrok.yml legacy_path=/home/runner/.ngrok2/ngrok.yml err="stat /home/runner/workspace/.config/ngrok/ngrok.yml: no such file or directory"
+t=2026-04-14T10:08:23+0000 lvl=info msg="using configuration at default config path" path=/home/runner/.ngrok2/ngrok.yml
+t=2026-04-14T10:08:23+0000 lvl=info msg="open config file" path=/home/runner/.ngrok2/ngrok.yml err=nil
+t=2026-04-14T10:08:23+0000 lvl=info msg="FIPS 140 mode" enabled=false
+t=2026-04-14T10:08:23+0000 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2026-04-14T10:08:23+0000 lvl=info msg="client session established" obj=tunnels.session
+t=2026-04-14T10:08:23+0000 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-04-14T10:08:28+0000 lvl=info msg="received stop request" obj=app stopReq="{err:<nil> restart:false}"
+t=2026-04-14T10:08:28+0000 lvl=info msg="session closing" obj=tunnels.session err=nil

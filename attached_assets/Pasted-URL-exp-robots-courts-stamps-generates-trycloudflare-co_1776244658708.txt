@@ -1,0 +1,35 @@
+URL: exp://robots-courts-stamps-generates.trycloudflare.com
+
+Open Expo Go → tap the address bar → enter the URL above
+Press Ctrl+C to stop all services.
+2026-04-15T07:54:17Z INF Lost connection with the edge connIndex=0
+2026-04-15T07:54:17Z ERR failed to serve incoming request error="Error shutting down control stream: context canceled"
+2026-04-15T07:54:17Z ERR Serve tunnel error error="connection with edge closed" connIndex=0 event=0 ip=198.41.200.193
+2026-04-15T07:54:17Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.193
+2026-04-15T07:54:18Z ERR Connection terminated error="connection with edge closed" connIndex=0
+2026-04-15T07:54:19Z INF Registered tunnel connection connIndex=0 connection=3c91a8e0-b7cf-4644-abe2-df7a2aed7d99 event=0 ip=198.41.200.193 location=dfw06 protocol=http2
+(node:1524) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+iOS client/index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+2026-04-15T07:58:54Z INF Lost connection with the edge connIndex=0
+2026-04-15T07:58:54Z ERR failed to serve incoming request error="Error shutting down control stream: context canceled"
+2026-04-15T07:58:54Z ERR Serve tunnel error error="connection with edge closed" connIndex=0 event=0 ip=198.41.200.193
+2026-04-15T07:58:54Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.193
+2026-04-15T07:58:55Z ERR Connection terminated error="connection with edge closed" connIndex=0
+iOS client/index.js ▓░░░░░░░░░░░░░░░  9.5% ( 66/214)
+iOS client/index.js ▓▓▓▓▓░░░░░░░░░░░ 33.7% (381/658)
+2026-04-15T07:59:02Z INF Registered tunnel connection connIndex=0 connection=8c6057c7-c485-4627-9d54-06ca63922b78 event=0 ip=198.41.200.193 location=ord12 protocol=http2
+iOS client/index.js ▓▓▓▓▓▓▓▓░░░░░░░░ 55.2% (640/884)
+iOS client/index.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 63.7% ( 843/1056)
+iOS client/index.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 66.4% ( 966/1249)
+iOS client/index.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 74.4% (1213/1406)
+iOS client/index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 85.0% (1379/1506)
+iOS client/index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 91.0% (1474/1550)
+iOS Bundled 31664ms client/index.js (1800 modules)
+iOS client/index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1800/1800)
+2026-04-15T09:15:28Z INF Lost connection with the edge connIndex=0
+2026-04-15T09:15:29Z ERR failed to serve incoming request error="Error shutting down control stream: context canceled"
+2026-04-15T09:15:29Z ERR Serve tunnel error error="connection with edge closed" connIndex=0 event=0 ip=198.41.200.193
+2026-04-15T09:15:29Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.193
+2026-04-15T09:15:29Z ERR Connection terminated error="connection with edge closed" connIndex=0
+2026-04-15T09:15:48Z INF Registered tunnel connection connIndex=0 connection=21577206-6cd2-4fd4-956c-4a8e19b20fd3 event=0 ip=198.41.200.193 location=ord11 protocol=http2

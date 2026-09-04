@@ -1,0 +1,71 @@
+entrypoint = "README.md"
+modules = ["web", "python-3.12", "bash", "nodejs-22", "postgresql-16"]
+
+[nix]
+channel = "stable-25_05"
+packages = ["gh"]
+
+[deployment]
+deploymentTarget = "autoscale"
+build = ["sh", "-c", "npm run build"]
+run = ["npm", "run", "server:prod"]
+
+[env]
+PORT = "5000"
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[agent]
+expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start dev servers"
+
+[[workflows.workflow]]
+name = "Start dev servers"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "(cd web && ../node_modules/.bin/vite) & PORT=5000 npx tsx server/index.ts"
+waitForPort = 5000
+
+[userenv]
+
+[userenv.shared]
+NODE_ENV = "production"
+PORT = "5000"
+APP_NAME = "ParcelPeer"
+LOG_LEVEL = "info"
+ADMIN_EMAIL = "admin@parcelpeer.com"
+JWT_EXPIRES_IN = "7d"
+REFRESH_TOKEN_EXPIRES_IN = "30d"
+FIREBASE_API_KEY = "AIzaSyD9pMTWieHyJ9z7qtg_BAKRZ8pqgNDnQiM"
+FIREBASE_APP_ID = "1:855107386441:web:d64c2fb26bd3056b3e5398"
+FIREBASE_AUTH_DOMAIN = "irgadgetsofficialweb.firebaseapp.com"
+FIREBASE_MEASUREMENT_ID = "G-7TXF3ZWZCC"
+FIREBASE_MESSAGING_SENDER_ID = "855107386441"
+FIREBASE_PROJECT_ID = "irgadgetsofficialweb"
+FIREBASE_STORAGE_BUCKET = "irgadgetsofficialweb.firebasestorage.app"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000

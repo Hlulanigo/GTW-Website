@@ -1,5 +1,5 @@
 /**
- * Migration: add role, monthly_parcel_count, last_parcel_reset_date to users
+ * Migration: add role, suspended, monthly_parcel_count, last_parcel_reset_date to users
  *
  * Run with:  npx tsx server/scripts/migrate_add_role_parcel_count.ts
  */
@@ -17,11 +17,12 @@ async function migrate() {
       ALTER TABLE users
         ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user',
         ADD COLUMN IF NOT EXISTS monthly_parcel_count INTEGER NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS suspended BOOLEAN NOT NULL DEFAULT false,
         ADD COLUMN IF NOT EXISTS last_parcel_reset_date TIMESTAMP;
     `);
 
     await client.query("COMMIT");
-    console.log("✅  Migration complete: role, monthly_parcel_count, last_parcel_reset_date added to users");
+    console.log("✅  Migration complete: role, suspended, monthly_parcel_count, last_parcel_reset_date added to users");
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("❌  Migration failed:", err);

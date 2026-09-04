@@ -1,59 +1,57 @@
-import type { Request, Response, NextFunction } from "express";
-import { verifyAccessToken, extractToken, JWTPayload } from "./jwt";
+import type { Response, NextFunction } from "express";
+import { eq } from "drizzle-orm";
+import { users } from "../shared/schema";
+import { db } from "./storage";
+import {
+  requireAuth as requireFirebaseAuth,
+  optionalAuth as optionalFirebaseAuth,
+  type AuthenticatedRequest,
+} from "./firebase-admin";
 
-export interface AuthenticatedRequest extends Request {
-  user?: JWTPayload;
-}
-
-/**
- * Middleware to require JWT authentication
- */
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  const token = extractToken(authHeader);
-
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized: No token provided" });
-  }
-
-  const payload = verifyAccessToken(token);
-  if (!payload) {
-    return res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
-  }
-
-  req.user = payload;
-  next();
-}
+export type { AuthenticatedRequest };
 
 /**
- * Middleware to optionally verify JWT authentication
- * Does not fail if token is missing, but validates if present
+ * Compatibility exports for routes that previously imported JWT middleware.
+ * Firebase ID tokens are the single supported bearer-token format.
  */
-export function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  const token = extractToken(authHeader);
-
-  if (token) {
-    const payload = verifyAccessToken(token);
-    if (payload) {
-      req.user = payload;
-    }
-  }
-
-  next();
-}
+export const requireAuth = requireFirebaseAuth;
+export const optionalAuth = optionalFirebaseAuth;
 
 /**
- * Middleware to check if user has admin role
+ * Require a Firebase-authenticated user with the admin role from PostgreSQL.
  */
-export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function requireAdmin(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
   if (!req.user) {
     return res.status(401).json({ error: "Unauthorized: No token provided" });
   }
 
-  // Note: You'll need to add role checking to the JWT payload or fetch from database
-  // For now, this assumes role info is added elsewhere
-  // TODO: Implement role-based access control
+  try {
+    const result = await db
+      .select({ role: users.role, suspended: users.suspended })
+      .from(users)
+      .where(eq(users.id, req.user.uid))
+      .limit(1);
 
-  next();
+    const user = result[0];
+    if (!user) {
+      return res.status(403).json({ error: "Admin account is not provisioned" });
+    }
+
+    if (user.suspended) {
+      return res.status(403).json({ error: "Account is suspended" });
+    }
+
+    if (user.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    (req as AuthenticatedRequest & { userRole?: string }).userRole = "admin";
+    next();
+  } catch (error) {
+    next(error);
+  }
 }

@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { hashPassword, comparePassword, validatePasswordStrength } from "./password";
 import { generateTokens, verifyRefreshToken, extractToken } from "./jwt";
 import { db } from "./storage";
-import { requireAuth, type AuthenticatedRequest } from "./jwt-middleware";
+import { requireAuth, type AuthenticatedRequest } from "./firebase-admin";
 import logger from "./logger";
 import { validateEmail } from "./validation";
 
@@ -213,7 +213,7 @@ export function registerAuthRoutes(app: Express) {
    */
   app.get("/api/auth/me", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user?.userId;
+      const userId = req.user?.uid;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -270,7 +270,7 @@ export function registerAuthRoutes(app: Express) {
    */
   app.post("/api/auth/change-password", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user?.userId;
+      const userId = req.user?.uid;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }

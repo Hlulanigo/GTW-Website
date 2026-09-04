@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Package, Clock, User, MessageCircle, Star, Navigation, Phone, ChevronDown, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react";
+import { MapPin, Package, Clock, User, MessageCircle, Star, Navigation, Phone, ChevronDown, Camera, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,6 +46,7 @@ export default function IncomingParcelDetailPage() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [photoError, setPhotoError] = useState("");
 
   const { data: parcel, isLoading } = useQuery({
     queryKey: ["parcel", id],
@@ -98,6 +99,39 @@ export default function IncomingParcelDetailPage() {
     }
   };
 
+  const photoMutation = useMutation({
+    mutationFn: (photoData: string) => api.post(`/api/parcels/${id}/photos/upload`, {
+      photoData,
+      photoType: "delivery",
+    }),
+    onSuccess: () => {
+      setPhotoError("");
+      qc.invalidateQueries({ queryKey: ["parcel", id] });
+      toast.success("Delivery proof uploaded");
+    },
+    onError: (err: any) => setPhotoError(err.message || "Photo upload failed"),
+  });
+
+  const handleProofPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      setPhotoError("Choose a JPEG, PNG, or WebP image");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError("Photo must be 10 MB or smaller");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") photoMutation.mutate(reader.result);
+    };
+    reader.onerror = () => setPhotoError("Could not read photo");
+    reader.readAsDataURL(file);
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-full">
@@ -125,6 +159,7 @@ export default function IncomingParcelDetailPage() {
   const isDelivered = parcel.status === "Delivered";
   const canConfirmDelivery = ["In Transit", "Arrived"].includes(parcel.status) && !parcel.deliveryConfirmedAt;
   const statusCfg = statusColors[parcel.status] || "bg-slate-100 text-slate-500";
+  const canUploadProof = parcel.receiverId === user?.uid && ["Accepted", "Picked Up", "In Transit", "Arrived"].includes(parcel.status);
 
   const fromAddress = parcel.origin || parcel.fromAddress;
   const toAddress = parcel.destination || parcel.toAddress;
@@ -336,6 +371,15 @@ export default function IncomingParcelDetailPage() {
                 Message Carrier
               </button>
             )}
+
+            {canUploadProof && (
+              <label className="btn-outline w-full py-3 flex items-center justify-center gap-2 font-semibold cursor-pointer">
+                <Camera size={16} />
+                {photoMutation.isPending ? "Uploading..." : "Confirm delivery with photo"}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProofPhoto} disabled={photoMutation.isPending} />
+              </label>
+            )}
+            {photoError && <p className="text-sm text-error text-center">{photoError}</p>}
 
             {isDelivered && !parcel.reviewed && (parcel.transporterId || parcel.carrierId) && (
               <button

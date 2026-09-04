@@ -38,6 +38,7 @@ attached_assets/*firebase-adminsdk*.json
 .config/ngrok/ngrok.yml
 logs/
 server.log
+uploads/
 
 # typescript
 *.tsbuildinfo
@@ -47,4 +48,8 @@ app-example
 # generated native folders
 /ios
 /android
+**/.gradle/
+**/build/
+**/local.properties
+**/google-services.json
 .env

@@ -2,10 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "node:http";
 import { storage, db } from "./storage";
 import { users, parcels, conversations, messages, connections, routes, routeBookings, reviews, pushTokens, parcelMessages, carrierLocations, receiverLocations, parcelTrackingEvents, payments, walletTransactions, savedPaymentMethods, autoTopUpSettings, disputes, disputeMessages, parcelPhotos, notifications, insertParcelSchema, insertMessageSchema, insertConnectionSchema, insertRouteSchema, insertRouteBookingSchema, insertReviewSchema, insertPushTokenSchema, insertParcelMessageSchema, insertCarrierLocationSchema, insertReceiverLocationSchema, insertPaymentSchema, insertWalletTransactionSchema, insertSavedPaymentMethodSchema, insertAutoTopUpSettingsSchema, insertDisputeSchema, insertDisputeMessageSchema, insertParcelPhotoSchema } from "../shared/schema";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 import { eq, desc, and, gte, lte, ne, sql } from "drizzle-orm";
 import { requireAuth, optionalAuth, type AuthenticatedRequest } from "./firebase-admin";
-import { registerReceiverEnhancements } from "./receiver-enhancements";
+import { registerReceiverEnhancements, storeParcelPhoto } from "./receiver-enhancements";
 import { registerAIRoutes } from "./ai-routes";
 import { NotificationService } from "./notification-service";
 import { setupRealtime, broadcastToUsers, isUserOnline, getLastSeen } from "./realtime";
@@ -37,6 +37,65 @@ async function recordTrackingEvent(parcelId: string, eventType: string, createdB
     eventType: eventType as "Accepted" | "Picked Up" | "In Transit" | "Arrived" | "Delivered",
     createdByUserId,
     note: note || null,
+  });
+}
+
+function hasValidPaystackSignature(rawBody: unknown, signature: unknown, secret: string): boolean {
+  if (typeof signature !== "string") return false;
+  const payload = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(JSON.stringify(rawBody));
+  const expected = createHmac("sha512", secret).update(payload).digest("hex");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const signatureBuffer = Buffer.from(signature, "utf8");
+  return expectedBuffer.length === signatureBuffer.length && timingSafeEqual(expectedBuffer, signatureBuffer);
+}
+
+async function getPaystackTransaction(reference: string, secret: string) {
+  const response = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+    headers: { Authorization: `Bearer ${secret}` },
+  });
+  const data = await response.json();
+  if (!response.ok || !data?.status || data?.data?.status !== "success") return null;
+  return data.data;
+}
+
+async function completeWalletTopup(reference: string, amount: number, currency: string, paymentData: unknown) {
+  return db.transaction(async (tx) => {
+    const transactionResult = await tx
+      .select()
+      .from(walletTransactions)
+      .where(eq(walletTransactions.reference, reference))
+      .limit(1);
+    const transaction = transactionResult[0];
+    if (!transaction || transaction.status !== "pending") return false;
+    if (transaction.amount !== amount || transaction.currency !== currency) return false;
+
+    await tx.execute(sql`SELECT id FROM users WHERE id = ${transaction.userId} FOR UPDATE`);
+    const lockedResult = await tx
+      .select()
+      .from(walletTransactions)
+      .where(eq(walletTransactions.reference, reference))
+      .limit(1);
+    const lockedTransaction = lockedResult[0];
+    if (!lockedTransaction || lockedTransaction.status !== "pending") return false;
+
+    const updatedUser = await tx
+      .update(users)
+      .set({ walletBalance: sql`${users.walletBalance} + ${lockedTransaction.amount}` })
+      .where(eq(users.id, lockedTransaction.userId))
+      .returning({ walletBalance: users.walletBalance });
+    const user = updatedUser[0];
+    if (!user) return false;
+
+    await tx
+      .update(walletTransactions)
+      .set({
+        status: "completed",
+        balanceAfter: user.walletBalance,
+        completedAt: new Date(),
+        paymentData: JSON.stringify(paymentData),
+      })
+      .where(and(eq(walletTransactions.reference, reference), eq(walletTransactions.status, "pending")));
+    return true;
   });
 }
 
@@ -857,15 +916,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Paystack Integration
   app.post("/api/payments/initialize", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const { amount, email, metadata } = req.body;
-      
-      if (!amount || !email) {
-        return res.status(400).json({ error: "Amount and email are required" });
+      const { amount, metadata } = req.body;
+
+      const amountNumber = Number(amount);
+      const parcelId = typeof metadata?.parcelId === "string" ? metadata.parcelId : "";
+      if (!Number.isInteger(amountNumber) || amountNumber <= 0 || amountNumber > 500000 || !parcelId) {
+        return res.status(400).json({ error: "A valid amount and parcelId are required" });
       }
 
       const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
       if (!paystackSecretKey) {
         return res.status(500).json({ error: "Paystack configuration missing" });
+      }
+
+      const user = await storage.getUser(req.user!.uid);
+      const parcel = await storage.getParcel(parcelId);
+      if (!user || !parcel || parcel.senderId !== req.user!.uid) {
+        return res.status(403).json({ error: "Payment is not authorized for this parcel" });
+      }
+
+      const expectedAmount = Math.round(Number(parcel.compensation) * 100);
+      const requestedAmount = Math.round(amountNumber * 100);
+      if (requestedAmount !== expectedAmount) {
+        return res.status(400).json({ error: "Payment amount does not match the parcel compensation" });
       }
 
       // Get the base URL from request or environment
@@ -880,9 +953,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: Math.round(amount * 100), // Convert to kobo/cents
-          email,
-          metadata,
+          amount: requestedAmount,
+          email: user.email,
+          metadata: { parcelId },
           callback_url: `${baseUrl}/api/payments/verify-web`,
         }),
       });
@@ -893,14 +966,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Store payment record
-      const platformFee = Math.round(amount * 0.03);
-      const totalAmount = amount + platformFee;
+      const platformFee = Math.round(amountNumber * 0.03);
+      const totalAmount = amountNumber + platformFee;
       
       await storage.createPayment({
-        parcelId: metadata.parcelId,
+        parcelId,
         userId: req.user!.uid,
         reference: data.data.reference,
-        amount: Math.round(amount),
+        amount: Math.round(amountNumber),
         platformFee,
         totalAmount,
         status: "pending",
@@ -924,21 +997,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Payment configuration missing" });
       }
 
-      const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-        headers: {
-          Authorization: `Bearer ${paystackSecretKey}`,
-        },
-      });
-
-      const data = await response.json();
-      if (data.status && data.data.status === "success") {
-        const { parcelId } = data.data.metadata;
-        if (parcelId) {
-          await storage.updateParcel(parcelId, { status: "Paid" });
-        }
+      const payment = await storage.getPaymentByReference(reference);
+      if (!payment || payment.userId !== req.user!.uid) {
+        return res.status(404).json({ error: "Payment not found" });
       }
 
-      res.json(data);
+      const transaction = await getPaystackTransaction(reference, paystackSecretKey);
+      if (!transaction || transaction.amount !== payment.amount * 100) {
+        return res.status(400).json({ error: "Payment verification failed" });
+      }
+
+      if (payment.status === "pending") {
+        await storage.updatePayment(payment.id, { status: "success" });
+        await storage.updateParcel(payment.parcelId, { status: "Paid" });
+      }
+
+      res.json({ status: true, data: transaction });
     } catch (error: any) {
       console.error("Paystack verification error:", error);
       res.status(500).json({ error: error.message || "Failed to verify payment" });
@@ -954,27 +1028,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Payment configuration missing" });
       }
 
-      const hash = createHmac("sha512", paystackSecretKey).update(JSON.stringify(req.body)).digest("hex");
-      
-      if (hash !== req.headers["x-paystack-signature"]) {
+      if (!hasValidPaystackSignature((req as any).rawBody, req.headers["x-paystack-signature"], paystackSecretKey)) {
         console.warn("Invalid Paystack webhook signature");
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const { event, data } = req.body;
-      
-      if (event === "charge.success") {
-        const { reference, status, metadata } = data;
+      if (event === "charge.success" && data?.metadata?.type === "wallet_topup") {
+        const transactionResult = await db
+          .select()
+          .from(walletTransactions)
+          .where(eq(walletTransactions.reference, data.reference))
+          .limit(1);
+        const transaction = transactionResult[0];
+        if (transaction && data.amount === transaction.amount && data.currency === transaction.currency) {
+          await completeWalletTopup(data.reference, transaction.amount, transaction.currency, data);
+        }
+      } else if (event === "charge.success") {
+        const { reference, status, metadata, amount } = data || {};
         
         // Update payment record
         const payment = await storage.getPaymentByReference(reference);
-        if (payment) {
+        if (payment && payment.status === "pending" && status === "success" && amount === payment.amount * 100 && metadata?.parcelId === payment.parcelId) {
           await storage.updatePayment(payment.id, { status: "success" });
           
           // Update parcel status
-          if (metadata?.parcelId) {
-            await storage.updateParcel(metadata.parcelId, { status: "Paid" });
-          }
+          await storage.updateParcel(payment.parcelId, { status: "Paid" });
         }
       }
       
@@ -2049,13 +2128,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/wallet/topup/initialize", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { amount, currency, email } = req.body;
-      
-      if (!amount || !currency || !email) {
-        return res.status(400).json({ error: "Amount, currency, and email are required" });
-      }
 
-      if (amount < 5 || amount > 50000) {
-        return res.status(400).json({ error: "Invalid amount" });
+      const amountNumber = Number(amount);
+      const normalizedCurrency = typeof currency === "string" ? currency.toUpperCase() : "";
+      if (!Number.isFinite(amountNumber) || amountNumber < 5 || amountNumber > 50000 || normalizedCurrency !== "ZAR") {
+        return res.status(400).json({ error: "A valid ZAR amount between 5 and 50000 is required" });
       }
 
       const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
@@ -2084,12 +2161,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           amount: amountInSmallestUnit, // Already in smallest unit
-          email,
-          currency: currency.toUpperCase(),
+          email: user.email,
+          currency: normalizedCurrency,
           metadata: {
             userId: req.user!.uid,
             type: "wallet_topup",
-            currency,
+            currency: normalizedCurrency,
           },
           callback_url: `${baseUrl}/api/wallet/topup/verify-web`,
         }),
@@ -2105,7 +2182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.uid,
         type: "topup",
         amount: amountInSmallestUnit,
-        currency: currency.toUpperCase(),
+        currency: normalizedCurrency,
         status: "pending",
         reference: data.data.reference,
         description: `Wallet top-up`,
@@ -2132,50 +2209,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Payment configuration missing" });
       }
 
-      const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
-        headers: {
-          Authorization: `Bearer ${paystackSecretKey}`,
-        },
-      });
+      const transactionResult = await db
+        .select()
+        .from(walletTransactions)
+        .where(and(eq(walletTransactions.reference, reference), eq(walletTransactions.userId, req.user!.uid)))
+        .limit(1);
+      const transaction = transactionResult[0];
+      if (!transaction) return res.status(404).json({ error: "Top-up not found" });
 
-      const data = await response.json();
-      
-      if (data.status && data.data.status === "success") {
-        const { metadata, amount, currency } = data.data;
-        
-        // Get transaction record
-        const txnResult = await db
-          .select()
-          .from(walletTransactions)
-          .where(eq(walletTransactions.reference, reference));
-        
-        if (txnResult.length > 0 && txnResult[0].status === "pending") {
-          const transaction = txnResult[0];
-          
-          // Get user
-          const user = await storage.getUser(metadata.userId);
-          if (user) {
-            // Update user wallet balance
-            const newBalance = user.walletBalance + transaction.amount;
-            await db
-              .update(users)
-              .set({ walletBalance: newBalance })
-              .where(eq(users.id, metadata.userId));
-            
-            // Update transaction status
-            await db
-              .update(walletTransactions)
-              .set({ 
-                status: "completed",
-                balanceAfter: newBalance,
-                completedAt: new Date(),
-              })
-              .where(eq(walletTransactions.reference, reference));
-          }
-        }
+      const paystackTransaction = await getPaystackTransaction(reference, paystackSecretKey);
+      if (!paystackTransaction || paystackTransaction.amount !== transaction.amount || paystackTransaction.currency !== transaction.currency) {
+        return res.status(400).json({ error: "Top-up verification failed" });
       }
 
-      res.json(data);
+      await completeWalletTopup(reference, transaction.amount, transaction.currency, paystackTransaction);
+
+      res.json({ status: true, data: paystackTransaction });
     } catch (error: any) {
       console.error("Wallet top-up verification error:", error);
       res.status(500).json({ error: error.message || "Failed to verify top-up" });
@@ -2195,32 +2244,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           headers: { Authorization: `Bearer ${paystackSecretKey}` },
         });
         const data = await response.json();
+        const paystackTransaction = data?.status && data?.data?.status === "success" ? data.data : null;
         const paystackStatus = data?.data?.status;
 
-        if (data?.status && paystackStatus === "success") {
+        if (paystackTransaction) {
           const txnResult = await db
             .select()
             .from(walletTransactions)
             .where(eq(walletTransactions.reference, reference));
 
-          if (txnResult.length > 0 && txnResult[0].status === "pending") {
-            const transaction = txnResult[0];
-            const user = await storage.getUser(transaction.userId);
-            if (user) {
-              const newBalance = user.walletBalance + transaction.amount;
-              await db
-                .update(users)
-                .set({ walletBalance: newBalance })
-                .where(eq(users.id, transaction.userId));
-              await db
-                .update(walletTransactions)
-                .set({
-                  status: "completed",
-                  balanceAfter: newBalance,
-                  completedAt: new Date(),
-                })
-                .where(eq(walletTransactions.reference, reference));
-            }
+          const transaction = txnResult[0];
+          if (transaction && paystackTransaction.amount === transaction.amount && paystackTransaction.currency === transaction.currency) {
+            await completeWalletTopup(reference, transaction.amount, transaction.currency, paystackTransaction);
           }
           status = "success";
         } else if (paystackStatus === "abandoned") {
@@ -2573,7 +2608,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parcel = await storage.getParcel(parcelId);
       if (!parcel) return res.status(404).json({ error: "Parcel not found" });
       if (!isParcelParticipant(parcel, req.user)) {
-        return res.status(403).json({ error: "You do not have access to this parcel" });
+  if (!isParcelParticipant(parcel, req.user)) {
+    return res.status(403).json({ error: "You do not have access to this parcel" });
       }
       const photos = await db
         .select()
@@ -2597,6 +2633,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "photoData and photoType are required" });
       }
 
+      if (photoType !== "listing" && photoType !== "pickup" && photoType !== "delivery") {
+        return res.status(400).json({ error: "photoType must be listing, pickup, or delivery" });
+      }
+
       const parcelResult = await db.select().from(parcels).where(eq(parcels.id, parcelId)).limit(1);
       if (!parcelResult.length) {
         return res.status(404).json({ error: "Parcel not found" });
@@ -2607,15 +2647,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const receiver = await storage.getUser(userId);
       const isReceiver = currentParcel.receiverId === userId ||
         normalizedEmail(receiver?.email) === normalizedEmail(currentParcel.receiverEmail);
-      if (!isCarrier && !isReceiver) {
+      const isSender = currentParcel.senderId === userId;
+      if (!isSender && !isCarrier && !isReceiver) {
         return res.status(403).json({ error: "You do not have access to this parcel" });
+      }
+      if (currentParcel.status === "Delivered" || currentParcel.status === "Expired") {
+        return res.status(409).json({ error: "Photos cannot be added to this parcel" });
+      }
+      if (photoType !== "listing" && !["Accepted", "Picked Up", "In Transit", "Arrived"].includes(currentParcel.status || "")) {
+        return res.status(409).json({ error: "Parcel is not in an active delivery state" });
+      }
+      if (photoType === "listing" && !isSender) {
+        return res.status(403).json({ error: "Only the sender can upload a listing photo" });
       }
       if (photoType === "pickup" && !isCarrier) {
         return res.status(403).json({ error: "Only the assigned carrier can upload pickup proof" });
       }
       if (photoType === "delivery" && !isCarrier && !isReceiver) {
-        return res.status(403).json({ error: "Only a parcel participant can upload delivery proof" });
+        return res.status(403).json({ error: "Only the carrier or receiver can upload delivery proof" });
       }
+        return res.status(403).json({ error: "Only the carrier or receiver can upload delivery proof" });
+      }
+
+      let photoUrl: string;
+      try {
+        photoUrl = await storeParcelPhoto(photoData, parcelId);
+      } catch (error: any) {
+        return res.status(400).json({ error: error.message || "Invalid photo" });
+      }
+
+      const photo = await db.insert(parcelPhotos).values({
+        parcelId,
+        uploadedBy: userId,
+        photoUrl,
+        photoType,
+        caption: caption || null,
+        latitude: latitude || null,
+        longitude: longitude || null,
+      }).returning();
+
+      if (photoType === "listing") {
+        await db.update(parcels).set({ photoUrl }).where(eq(parcels.id, parcelId));
+      }
+
       if (photoType === "pickup") {
         if (!["Accepted", "Picked Up"].includes(currentParcel.status || "")) {
           return res.status(409).json({ error: `Pickup proof is not valid while the parcel is ${currentParcel.status}` });

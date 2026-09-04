@@ -2,24 +2,15 @@ import { pgTable, varchar, text, timestamp, boolean } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm";
 import { parcels, users } from "./schema";
 
-// New table for delivery proof photos
-export const deliveryProofs = pgTable("delivery_proofs", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  parcelId: varchar("parcel_id").notNull().references(() => parcels.id),
-  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id),
-  photoUrl: text("photo_url").notNull(),
-  uploadedAt: timestamp("uploaded_at").defaultNow(),
-  notes: text("notes"),
-});
+// Re-exported from ./schema (single source of truth)
+export { deliveryProofs } from "./schema";
 
-// Receiver confirmation requests
+// Receiver confirmation requests (created before a parcel exists, so parcel_id is nullable)
 export const receiverConfirmations = pgTable("receiver_confirmations", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  parcelId: varchar("parcel_id").notNull().references(() => parcels.id),
+  parcelId: varchar("parcel_id").references(() => parcels.id),
   receiverEmail: text("receiver_email").notNull(),
   confirmed: boolean("confirmed").default(false),
   confirmedAt: timestamp("confirmed_at"),

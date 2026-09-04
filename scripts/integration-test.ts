@@ -193,7 +193,7 @@ async function run() {
   console.log('Payments before webhook:', hist1.map((p: any) => ({ id: p.id, status: p.status })));
 
   // Simulate Paystack webhook
-  const payload = { event: 'charge.success', data: { reference, status: 'success', metadata: { parcelId: parcelJson.id } } };
+  const payload = { event: 'charge.success', data: { reference, status: 'success', amount: amount * 100, metadata: { parcelId: parcelJson.id } } };
   const signature = createHmac('sha512', process.env.PAYSTACK_SECRET_KEY!).update(JSON.stringify(payload)).digest('hex');
   const webhookRes = await fetch(`${BACKEND}/payments/webhook`, {
     method: 'POST',

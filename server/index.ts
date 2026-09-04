@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { registerAdminRoutes } from "./admin-routes";
 import * as fs from "fs";
 import * as path from "path";
 import { createProxyMiddleware } from "http-proxy-middleware";
@@ -62,6 +63,11 @@ function setupBodyParsing(app: express.Application) {
   );
 
   app.use(express.urlencoded({ extended: false }));
+}
+
+function setupPhotoStorage(app: express.Application) {
+  const uploadRoot = path.resolve(process.env.PHOTO_STORAGE_DIR || path.resolve(process.cwd(), "uploads"));
+  app.use("/uploads", express.static(uploadRoot, { index: false, maxAge: "1d" }));
 }
 
 function setupRequestLogging(app: express.Application) {
@@ -781,6 +787,7 @@ function setupErrorHandler(app: express.Application) {
 export async function createServerInstance() {
   setupCors(app);
   setupBodyParsing(app);
+  setupPhotoStorage(app);
   setupRequestLogging(app);
 
   if (process.env.NODE_ENV === "production") {
@@ -792,6 +799,7 @@ export async function createServerInstance() {
   }
 
   const server = await registerRoutes(app);
+  registerAdminRoutes(app);
 
   setupErrorHandler(app);
 

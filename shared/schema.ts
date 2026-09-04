@@ -32,6 +32,8 @@ export const users = pgTable("users", {
   photoUrl: text("photo_url"),
   rating: real("rating").default(5.0),
   verified: boolean("verified").default(false),
+role: text("role").notNull().default("user"),
+  suspended: boolean("suspended").notNull().default(false),
   emailVerified: boolean("email_verified").default(false),
   walletBalance: integer("wallet_balance").default(0).notNull(),
   subscriptionStatus: text("subscription_status").default("free").notNull(),
@@ -676,6 +678,23 @@ export const insertParcelPhotoSchema = createInsertSchema(parcelPhotos).omit({
   id: true,
   createdAt: true,
 });
+export const deliveryProofs = pgTable("delivery_proofs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  parcelId: varchar("parcel_id").notNull().references(() => parcels.id),
+  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id),
+  photoUrl: text("photo_url").notNull(),
+  fileName: text("file_name").notNull(),
+  contentType: text("content_type").notNull(),
+  fileSizeBytes: integer("file_size_bytes").notNull(),
+  sha256Hash: text("sha256_hash").notNull(),
+  notes: text("notes"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+});
+
+export const insertDeliveryProofSchema = createInsertSchema(deliveryProofs).omit({
+  id: true,
+  uploadedAt: true,
+});
 
 export const notifications = pgTable("notifications", {
   id: varchar("id")
@@ -733,6 +752,8 @@ export type InsertDispute = z.infer<typeof insertDisputeSchema>;
 export type Dispute = typeof disputes.$inferSelect;
 export type InsertDisputeMessage = z.infer<typeof insertDisputeMessageSchema>;
 export type DisputeMessage = typeof disputeMessages.$inferSelect;
+export type InsertDeliveryProof = z.infer<typeof insertDeliveryProofSchema>;
+export type DeliveryProof = typeof deliveryProofs.$inferSelect;
 export type InsertParcelPhoto = z.infer<typeof insertParcelPhotoSchema>;
 export type ParcelPhoto = typeof parcelPhotos.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;

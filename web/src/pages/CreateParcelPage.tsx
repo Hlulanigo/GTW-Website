@@ -155,7 +155,17 @@ export default function CreateParcelPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => api.post("/api/parcels", data),
+    mutationFn: async (data: any) => {
+      const { photoData, ...parcelData } = data;
+      const parcel = await api.post<any>("/api/parcels", parcelData);
+      if (photoData && parcel?.id) {
+        await api.post(`/api/parcels/${parcel.id}/photos/upload`, {
+          photoData,
+          photoType: "listing",
+        });
+      }
+      return parcel;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["parcels"] });
       navigate("/my-parcels");
@@ -189,7 +199,7 @@ export default function CreateParcelPage() {
       receiverEmail: selectedReceiver?.email || null,
       weight: weight ? parseFloat(weight) : null,
       isFragile,
-      photoUrl: photoDataUrl,
+      photoData: photoDataUrl,
     });
   };
 

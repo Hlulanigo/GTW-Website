@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { users } from '@shared/schema'
 import { db } from './storage'
 import { ForbiddenError, UnauthorizedError } from './error-handler'
-import { AuthenticatedRequest } from './jwt-middleware'
+import type { AuthenticatedRequest } from './firebase-admin'
 
 export type UserRole = 'user' | 'carrier' | 'support' | 'admin'
 export type Permission = 
@@ -120,16 +120,15 @@ export function hasPermission(role: UserRole, permission: Permission): boolean {
  */
 export function requirePermission(...permissions: Permission[]) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new UnauthorizedError('Authentication required')
-    }
-
     try {
+      if (!req.user) {
+        return next(new UnauthorizedError('Authentication required'))
+      }
       // Fetch user with role
       const userResult = await db
         .select()
         .from(users)
-        .where(eq(users.id, req.user.userId))
+        .where(eq(users.id, req.user.uid))
         .limit(1)
 
       if (userResult.length === 0) {
@@ -137,6 +136,11 @@ export function requirePermission(...permissions: Permission[]) {
       }
 
       const user = userResult[0]
+
+      if (user.suspended) {
+        return next(new ForbiddenError('This account has been suspended'))
+      }
+
       const userRole = (user.role as UserRole) || 'user'
 
       // Check if user has any of the required permissions
@@ -158,6 +162,7 @@ export function requirePermission(...permissions: Permission[]) {
       next(error)
     }
   }
+}
 
 /**
  * Require support or admin role
@@ -165,16 +170,15 @@ export function requirePermission(...permissions: Permission[]) {
  */
 export function requireSupport() {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new UnauthorizedError('Authentication required')
-    }
-
     try {
+      if (!req.user) {
+        return next(new UnauthorizedError('Authentication required'))
+      }
       // Fetch user with role
       const userResult = await db
         .select()
         .from(users)
-        .where(eq(users.id, req.user.userId))
+        .where(eq(users.id, req.user.uid))
         .limit(1)
 
       if (userResult.length === 0) {
@@ -182,6 +186,11 @@ export function requireSupport() {
       }
 
       const user = userResult[0]
+
+      if (user.suspended) {
+        return next(new ForbiddenError('This account has been suspended'))
+      }
+
       const userRole = (user.role as UserRole) || 'user'
 
       if (userRole !== 'support' && userRole !== 'admin') {
@@ -211,10 +220,12 @@ export function isSupport(req: AuthenticatedRequest): boolean {
 /**
  * Require admin role only
  */
-export function requireAdmin() {
-  return requireRole('admin')
-}
-
+export function requireAdmin(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  return requireRole('admin')(req, res, next)
 }
 
 /**
@@ -222,16 +233,15 @@ export function requireAdmin() {
  */
 export function requireRole(...roles: UserRole[]) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new UnauthorizedError('Authentication required')
-    }
-
     try {
+      if (!req.user) {
+        return next(new UnauthorizedError('Authentication required'))
+      }
       // Fetch user with role
       const userResult = await db
         .select()
         .from(users)
-        .where(eq(users.id, req.user.userId))
+        .where(eq(users.id, req.user.uid))
         .limit(1)
 
       if (userResult.length === 0) {
@@ -239,6 +249,11 @@ export function requireRole(...roles: UserRole[]) {
       }
 
       const user = userResult[0]
+
+      if (user.suspended) {
+        return next(new ForbiddenError('This account has been suspended'))
+      }
+
       const userRole = (user.role as UserRole) || 'user'
 
       if (!roles.includes(userRole)) {
